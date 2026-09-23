@@ -2,9 +2,22 @@
 
 This directory is the canonical cross-domain specification pack. `../../TASKS.md` is the sole future implementation queue; do not add a second task list here.
 
+## Handoff and navigation documents
+
+Read these first when handing the project to a developer or coding agent.
+
 | Document | Canonical responsibility | Accountable role |
 |---|---|---|
+| [`HANDOFF.md`](HANDOFF.md) | Safe reading order, authority hierarchy, implementation protocol, and handling of unknowns | Engineering owner |
+| [`GLOSSARY.md`](GLOSSARY.md) | Canonical domain language and state terminology | Product + Engineering |
+| [`TRACEABILITY.md`](TRACEABILITY.md) | Requirement → specification → task → evidence navigation | Engineering owner |
+| [`DECISION-GATES.md`](DECISION-GATES.md) | Open external/provider/legal/production gates that must not be guessed | Cross-functional owners |
 | [`CONTEXT-RECORD.md`](CONTEXT-RECORD.md) | Context, provenance, selected overlays, omissions, and approval gates | GeraiHub product owner |
+
+## Domain specifications
+
+| Document | Canonical responsibility | Accountable role |
+|---|---|---|
 | [`02-PRD.md`](02-PRD.md) | Product scope, observable requirements, non-goals, and accepted policy decisions | GeraiHub product owner |
 | [`03-TECHNICAL-DESIGN.md`](03-TECHNICAL-DESIGN.md) | Proposed component behavior, state guards, provider boundary, and verification plan | Engineering owner |
 | [`04-SYSTEM-ARCHITECTURE.md`](04-SYSTEM-ARCHITECTURE.md) | Target containers, trust boundaries, reliability boundaries, and explicit deferrals | Engineering owner |
@@ -28,7 +41,7 @@ This directory is the canonical cross-domain specification pack. `../../TASKS.md
 - These documents describe the planned product and target controls. They are not runtime evidence.
 - `~/Documents/work/prd/geraihub/` is a retained pre-promotion snapshot and must not be edited as the current source of truth.
 - The implementation stack baseline is accepted in `../adr/ADR-001-RUNTIME-DEPLOYMENT-PROFILE.md`; exact installed package compatibility remains T-1 runtime evidence. Provider behavior, legal conclusions, production controls, and release claims remain gated.
-- Files are numbered by the suite's domain map; intentionally absent numbers represent omitted or deferred artifacts, not missing files.
+- `HANDOFF.md`, `GLOSSARY.md`, `TRACEABILITY.md`, and `DECISION-GATES.md` are navigation/control documents. They do not override the owning requirement, ADR, or current runtime evidence.
 
 ## Structural validation
 
