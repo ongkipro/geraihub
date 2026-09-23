@@ -4,14 +4,14 @@ Updated: 2026-09-24
 
 ## Current phase
 
-**Development authorized; T-1 foundation implemented in an uncommitted feature worktree and locally verified, with clean-checkout proof pending.**
+**Development authorized; T-1 foundation verified from committed clean checkout; T-3 persistence locally verified. T-4 OAuth and provisioning is next.**
 
 Current state is recorded here; older audit sections below are historical evidence from the documentation phase. Source-code authorization does not authorize credentials, Mengantar mutations, production resources, or deployment.
 
 ## Verified repository state
 
 - Canonical branch: `main`.
-- Active implementation worktree: `feat/development-foundation` at base `fc9aed0`, with uncommitted source. T-1 is not yet marked complete. A fresh source export without installed/build artifacts passed frozen install, local PostgreSQL migration/seed, 2 foundation tests, lint, typecheck, build, and web/worker startup on 2026-09-24. This proves the local foundation only; a committed clean checkout and hosted CI run remain unobserved.
+- Active implementation worktree: `feat/development-foundation`, with foundation commit `402b441`. A detached, initially clean checkout of that commit passed frozen install, migration generation/drift check, local PostgreSQL 17 migration/seed, 2 foundation tests, lint, typecheck, build, production web HTTP 200, and worker startup on 2026-09-24. This proves the local foundation only; hosted CI for this commit remains unobserved.
 - Product, architecture, tenant/IAM, state/concurrency, API, UI, billing, security, privacy baseline, testing, operations, observability, and error contracts are present.
 - The documentation pack now includes canonical glossary, requirement traceability, open decision/evidence gates, and a developer/AI handoff contract.
 - T-2 planning runtime baseline is accepted: Node.js 24 LTS major, pnpm, Next.js App Router, PostgreSQL, Drizzle, Better Auth, modular monolith, separate web/worker processes.
@@ -23,8 +23,9 @@ Current state is recorded here; older audit sections below are historical eviden
 - A new product input sets the GeraiHub COD fee estimate to 3.33% of intended COD amount for both COD modes, zero for non-COD. Whole-rupiah rounding, payer, add-versus-deduct treatment, actual Mengantar tariff and remittance fields remain GATE-COD-FEE; no final fee or payout is claimed.
 - The repository-owned validator is `python3 scripts/check-repository.py .`.
 - GitHub Actions Specification Validation has produced a successful run on the hardened main baseline. T-23 branch protection is enabled and verified: PR, strict `validate` check, conversation resolution, admin enforcement, and no force push/deletion.
-- Exact foundation versions are pinned in `package.json`/`pnpm-lock.yaml` and tested locally; installed Better Auth/Drizzle adapter exports resolve. Generated auth schema, OAuth/session behavior and tenant enforcement remain T-3/T-4/T-5 evidence.
+- Exact foundation versions are pinned in `package.json`/`pnpm-lock.yaml` and tested locally; the installed Better Auth/Drizzle adapter now writes/reads the reviewed identity schema. OAuth callback/session policy and tenant authorization remain T-4/T-5 evidence.
 - The extended `validate` workflow now declares an ephemeral PostgreSQL 17 service and runs locked install, migration generation/drift check, synthetic migration/seed, lint, typecheck, tests, and build. Locally, `actionlint`, repository validation (37 required files, 41 Markdown files), 18 validator regressions, peer-dependency check, and `git diff --check` passed on 2026-09-24. The updated workflow has not yet run on hosted GitHub Actions.
+- T-3's organization/branch, Better Auth identity/context, invitation, membership, platform-grant, and bootstrap-marker persistence is implemented. Three additive migrations passed from an empty disposable PostgreSQL 17 database; 8/8 integration tests, lint, typecheck, build, peer check, repository validator, and schema generation without drift passed locally on 2026-09-24. Invitation acceptance is atomic and requires a previously verified Google subject; no runtime Google callback, public auth route, branch authorization, or real bootstrap is implemented yet.
 
 ## Documentation handoff entry points
 
@@ -37,7 +38,7 @@ These files are navigation/control layers. The owning product/specification docu
 
 ## Open gates that must not be fabricated
 
-1. **T-1 clean-checkout closure:** local foundation checks passed from an isolated source export; repeat them from a committed clean checkout before closing T-1 and starting dependent T-3.
+1. **T-4 authentication and provisioning:** T-3 persistence is locally complete, but real Google callbacks, token stripping before storage, invitation-bound session creation, controlled bootstrap, and browser recovery must be implemented and tested.
 2. **T-10 Mengantar contract evidence:** estimate/order/idempotency/status/label/cancellation/pickup/account behavior requires current documented and authorized sanitized evidence.
 3. **Finance:** invoice replacement policy, final estimated-profit formula inputs, and authoritative pickup/provider mapping require approval/evidence.
 4. **Privacy/legal:** legal entity/roles, retention, notice, rights, vendors/regions/transfers remain production gates.

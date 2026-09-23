@@ -2,7 +2,7 @@
 
 GeraiHub is a planned multi-organization, multi-branch web application for Indonesian shipment-counter operations.
 
-The development branch contains the T-1 application foundation: a Next.js web process, a PostgreSQL migration probe, and a separate worker process. It does not yet implement OAuth, GeraiHub authorization, shipment operations, Mengantar integration, or deployment.
+The development branch contains the T-1 application foundation and T-3 identity/branch persistence: a Next.js web process, separate worker, reviewed PostgreSQL migrations, and synthetic database tests. It does not yet implement OAuth, GeraiHub action authorization, shipment operations, Mengantar integration, or deployment.
 
 ## Documentation status
 

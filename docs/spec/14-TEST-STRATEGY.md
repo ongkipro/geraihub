@@ -108,7 +108,7 @@ Screenshots support UX evidence but never replace executable assertions.
 
 ## 7. Readiness Refinement Procedures
 
-These are planned behavioral procedures, not passing runtime evidence. Before executing the named task, add its actual test file/command to TASKS.md. No application test command exists yet.
+These are planned behavioral procedures, not passing runtime evidence. Before executing the named task, add its actual test file/command to TASKS.md. The current `pnpm test` suite proves T-1 foundation and T-3 persistence only; it does not satisfy TEST-2 through TEST-5.
 
 ### TEST-2 — Quote, invoice, and cancellation safety
 - Target: PR-2, PR-3, PR-6, PR-7, BILL-9
