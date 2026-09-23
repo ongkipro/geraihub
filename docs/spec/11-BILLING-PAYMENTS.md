@@ -38,7 +38,7 @@ Core cash/QRIS, correction approval, external refund, pickup-only estimate, acti
 | Provider discount/cashback | Mengantar | Snapshot source/version; use only for labeled internal estimate. |
 | Customer refund | Branch external process in MVP | Record approved local event; do not imply provider reversal. |
 
-All monetary values use IDR exact minor-unit representation or documented exact-decimal handling. The implementation must not use floating-point arithmetic for money.
+All GeraiHub-owned monetary values use exact integer IDR rupiah compatible with PostgreSQL `BIGINT`, per ADR-004. Provider decimal values are normalized at the adapter boundary with explicit precision validation. The implementation must not use floating-point arithmetic for money.
 
 ## 3. Counter Payment Workflow
 
