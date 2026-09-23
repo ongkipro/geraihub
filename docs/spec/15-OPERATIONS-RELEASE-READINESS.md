@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Accepted readiness contract; production values pending |
-| Version / updated | 1.0 / 2026-09-23 |
+| Version / updated | 1.1 / 2026-09-24 |
 | Accountable owner | Operations owner |
 | Authority | Canonical repository specification when merged |
 | Related | T-17 through T-20, SEC-13, SEC-14, OBS-1 through OBS-3, PRIV-11 |
@@ -88,7 +88,7 @@ Personal-data incidents are escalated to the privacy owner; engineering does not
 T-20 may report release-ready only when:
 
 - all required tasks are PASS with evidence;
-- no unresolved P0 security/tenant/provider correctness blocker remains;
+- no unresolved finding violates a required acceptance criterion; security/tenant/provider correctness and financial-integrity blockers cannot be deferred by severity-label changes;
 - T-10 required provider evidence exists;
 - privacy/vendor/retention gates required for production are approved;
 - restore and rollback rehearsal passed;

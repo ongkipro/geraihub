@@ -1,5 +1,7 @@
 # ADR-003 — Durable Provider Dispatch and Reconciliation
 
+## ADR-003 — Decision record
+
 - Status: Accepted
 - Date: 2026-09-23
 - Owner: Engineering owner

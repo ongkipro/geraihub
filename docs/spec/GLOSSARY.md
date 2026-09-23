@@ -19,11 +19,19 @@ This glossary fixes the meaning of terms that cross product, architecture, secur
 | Shipment | GeraiHub operational aggregate representing one package workflow under immutable organization/branch ownership. | Provider settlement record or customer checkout order. |
 | Draft | Branch-owned shipment state before provider submission. | A Mengantar order. |
 | Quote | Versioned normalized estimate used for operator review and final customer charge confirmation. | Provider settlement truth or a permanently valid price. |
-| Physical verification | Operator verification of actual package values before final quote/payment/submission. | Customer-entered values or an unverified estimate. |
-| Customer charge | Amount the customer is charged at the gerai before provider cashback/discount effects. | Provider cost or GeraiHub authoritative settlement amount. |
-| Direct payment record | GeraiHub append-only operational evidence that cash or approved branch QRIS payment was verified at the counter. | A payment gateway transaction, wallet balance, or provider settlement. |
-| Payment correction | Append-only correction workflow: admin requests, owner decides, original record remains. | Editing/deleting the original payment. |
-| External refund | Refund performed outside GeraiHub and recorded only as audited evidence when required. | Provider cancellation or an in-app transfer. |
+| Physical verification | Operator verification of actual package values before final quote and submission. | Customer-entered values or an unverified estimate. |
+| Shipping charge / customer shipping charge | Verified quote amount for delivery service before provider cashback/discount, with an explicit manual-gerai or courier-COD collection allocation. | Declared goods value, requested courier COD amount, actual collected money, or provider cost. |
+| Pickup point / origin | Approved address/configuration of the active gerai used as the shipment's origin and snapshotted at submit. | Courier pickup/handover status or another branch's origin. |
+| Contact directory | Optional branch-local reusable sender/recipient details searched by authorized staff; a selected entry is copied into a shipment snapshot. | Public draft lookup or a cross-branch customer database. |
+| Declared goods total | Exact sum of shipped-item quantity times declared unit value, describing parcel contents. | Shipping invoice total or COD amount. |
+| Non-COD | Default shipment mode with no courier collection requested; any gerai-counter payment is handled manually outside the app. | Proof that shipping was paid. |
+| COD ongkir | Shipment mode requesting courier collection of the verified shipping charge only, subject to provider eligibility. | Product-value collection. |
+| COD produk | Shipment mode requesting courier collection of the declared goods total, with verified shipping charge included only when explicitly selected. | Automatic gerai payment or proof of courier remittance. |
+| Intended courier collection | Exact amount requested from Mengantar under a confirmed COD mode before provider-specific adjustments. | Actual collected, remitted, or settled amount. |
+| COD service fee estimate | GeraiHub planning calculation of 3.33% of intended COD amount (`333 / 10,000`), with rounding and payer unresolved. | Verified Mengantar fee, additional recipient collection, or final net remittance. |
+| Manual customer payment | Gerai collects customer payment outside GeraiHub; the app does not record or infer method, status, receipt, correction, or refund. | A shipment state or prerequisite for provider submission. |
+| Invoice | Immutable branch-issued charge document tied to one confirmed provider resi and quote version; reprint preserves its identity. | Receipt or proof of payment. |
+| Draft-reference QR code | Deferred post-MVP representation of the same opaque customer draft reference shown in text. | Payment QR code or Mengantar resi. |
 | Provider | Mengantar, as the external shipment/provider integration authority in the current product design. | GeraiHub itself. |
 | Provider operation | Durable GeraiHub record for an external side-effect intent such as create/cancel, including correlation, attempts, and reconciliation state. | A browser request or UI click. |
 | Provider truth | Current authoritative Mengantar result for shipment/provider finance fields that GeraiHub explicitly treats as external source of truth. | A locally assumed result after timeout. |
@@ -64,7 +72,7 @@ Avoid the standalone words **success**, **failed**, **cancelled**, **paid**, **p
 Prefer:
 
 - "branch-scoped" over "tenant-scoped" when describing shipment operations;
-- "GeraiHub operational payment record" over "payment transaction";
+- "manual customer payment outside GeraiHub" over an application payment state;
 - "Mengantar authoritative finance/provider state" over "GeraiHub balance";
 - "estimated profit" over "profit";
 - "provider-confirmed cancellation" over "cancelled" when discussing post-submission flows;

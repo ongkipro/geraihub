@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Accepted planning contract; thresholds/runtime evidence pending |
-| Version / updated | 0.2 / 2026-09-23 |
+| Version / updated | 0.3 / 2026-09-24 |
 | Authority | Canonical repository specification; promoted from the retained planning snapshot on 2026-09-23 |
 
 ## 1. Requirements
@@ -24,7 +24,7 @@
 | Audit | action, actor ID, organization/branch ID, resource ID, result/reason, correlation, timestamp | credentials, session/token/cookie, full PII, full request/response bodies |
 | Provider operation | operation class, correlation/idempotency, branch, sanitized status/error class, duration, retry/reconciliation state | credential-bearing URL, API key, complete address/contact payload |
 | Metrics | operation/outcome/latency, queue age/depth, provider sync/cancellation state counts, branch-scoped rate-limit events | customer contact or resi as metric label |
-| Finance/reconciliation | snapshot freshness, mismatch count/type, report eligibility count | payment credentials, unnecessary customer values |
+| Finance/reconciliation | snapshot freshness, mismatch count/type, report eligibility count | invoice/customer details |
 
 ## 3. Dashboards and Alerts
 
@@ -40,6 +40,7 @@ Thresholds and retention remain evidence-based operational decisions; do not inv
 | Surface | Scope | Behavior when exceeded |
 |---|---|---|
 | Login/recovery | identity/IP risk policy | Generic throttled response; audit security signal. |
+| Branch contact/shipment search | Active branch/user plus bounded query/result policy | Throttle enumeration, retain minimized results, never log search terms; changing branch discards pending results. |
 | Customer pre-fill reference/phone lookup (post-MVP) | Branch/operator plus IP/session as appropriate | Deny/throttle without confirming record existence; alert enumeration patterns. |
 | Provider estimate | Branch/user and provider contract | Coalesce/debounce safe repeats; show retry state. |
 | Provider order/cancel | Branch and provider account; serialization where provider requires it | Queue/reconcile; never parallel blind retry. |
@@ -48,4 +49,4 @@ Thresholds and retention remain evidence-based operational decisions; do not inv
 
 ## 5. Incident Evidence
 
-For a provider or isolation incident, preserve correlation IDs, sanitized transition history, actor/branch scope, release version, and timing. Do not preserve secrets, raw customer payload, or payment credentials merely for debugging.
+For a provider or isolation incident, preserve correlation IDs, sanitized transition history, actor/branch scope, release version, and timing. Do not preserve secrets, raw customer payload, or invoice/customer payloads merely for debugging.

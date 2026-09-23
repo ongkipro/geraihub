@@ -15,6 +15,7 @@ Run from repository root:
 
 ```bash
 python3 scripts/check-repository.py .
+python3 scripts/test-check-repository.py
 ```
 
 When application code exists, also run the task-specific lint/typecheck/test/migration/browser commands recorded by the repository.

@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Accepted technical planning baseline; implementation/provider evidence pending |
-| Version / updated | 0.2 / 2026-09-23 |
+| Version / updated | 0.3 / 2026-09-24 |
 | Authority | Canonical repository specification; promoted from the retained planning snapshot on 2026-09-23 |
 | Scope | Branch-scoped shipment operations with Mengantar integration |
 
@@ -21,10 +21,10 @@ The system is organization-aware but branch-operational: an owner may belong to 
 |---|---|---|---|---|---|
 | TD-1 | Engineering owner | Web operator/admin UI | Branch selection, counter workflow, queues, detail, governance surfaces | Local UI state only | Preserve entered form data; show recoverable provider/sync state. |
 | TD-2 | Security owner | Auth/context policy | Complete Google OAuth login, resolve provider subject to GeraiHub user/account, resolve membership/active branch, authorize action | GeraiHub session/context/account link | Deny missing, stale, disabled, uninvited, or mismatched scope. |
-| TD-3 | Engineering owner | Shipment application module | Draft, quote version, physical verification, payment record, lifecycle guards | Shipment aggregate | Reject invalid state transition; serialize/guard concurrent mutation. |
+| TD-3 | Engineering owner | Shipment application module | Draft, quote version, physical verification, invoice snapshot, lifecycle guards | Shipment aggregate | Reject invalid state transition; serialize/guard concurrent mutation. |
 | TD-4 | Engineering owner | Mengantar adapter | Sanitize/validate provider requests and responses; estimate, order, status, cancellation/label operations once verified | Provider mapping/sync evidence | Never expose credential; classify timeout/unknown separately from failure; idempotent retry/reconcile. |
 | TD-5 | Engineering owner | Dispatch/reconciliation worker | Reliably run provider work and reconcile pending/unknown outcomes | Job/outbox/sync records | Retry bounded transient failure; quarantine mismatches; no blind duplicate order. |
-| TD-6 | Engineering owner | Print service | Render/obtain confirmed label for print/reprint | Print audit only | Refuse if provider label state is not confirmed; reprint never creates order. |
+| TD-6 | Engineering owner | Counter print service | Prepare the confirmed provider label/resi and immutable invoice in one authorized print flow; provide separate reprints | Document issue/print-request audit only | Refuse combined print until label is printable and invoice is issued; never alter provider label, create another order/invoice, or assert physical print completion from a browser dialog. |
 | TD-7 | Engineering owner | Finance read model | Provider snapshots, mismatch queue, eligible estimated-profit report | Non-authoritative snapshots | Label stale/mismatch/estimate; do not overwrite provider truth. |
 | TD-8 | Engineering owner | Audit/observability | Immutable operational/security events and redacted diagnostics | Audit events | Never log secrets/full payloads; alert reconciliation/security failures. |
 
@@ -39,15 +39,70 @@ The system is organization-aware but branch-operational: an owner may belong to 
 
 ## 3. Key Flows
 
+### TD-10 — Privacy operations readiness
+- Status: Accepted planning requirement
+- Owner: Engineering owner
+- Source: PRIV-10, PRIV-11, PRIV-12
+- Statement: Implement the approved notice/version, vendor, retention and internal rights-case controls before production data collection, preserving authorization and audit history.
+- Acceptance: T-18 records approved policy references and a synthetic export/deletion/restriction exercise; publishing remains separately authorized.
+- Constraints: PRIV-6 through PRIV-13, SEC-14
+- Change history: Added to give privacy implementation a technical primary requirement without changing legal approval ownership.
+
+### TD-11 — Recoverable deployment readiness
+- Status: Accepted planning requirement
+- Owner: Engineering owner
+- Source: SEC-13, SEC-14, OBS-3
+- Statement: Provide reproducible deployment, restore and rollback/run-forward procedures that preserve tenant history and ambiguous provider operations.
+- Acceptance: T-19 executes a synthetic non-production restore and migration/release rehearsal against approved recovery targets.
+- Constraints: PRIV-11, SEC-15
+- Change history: Added to give operational implementation a technical primary requirement without authorizing deployment.
+
 ### Create to print
 
+This flow is a navigation aid for the canonical state guards in `08-STATE-CONCURRENCY-CONTRACT.md`. Provider nodes require the capability evidence in section 7.
+
+```mermaid
+flowchart TD
+  Auth[Authenticated workspace] --> Scope[Authorized active branch]
+  Scope --> Entry[Pickup and contact snapshots]
+  Entry --> Items[Items and physical package]
+  Items --> Mode[Mode and shipping allocation]
+  Mode --> Quote[Verified quote and review]
+  Quote --> Intent[Durable submit intent]
+  Intent --> Guard{Dispatch guards valid?}
+  Guard -->|No, never dispatched| Requote[Invalidate and requote]
+  Requote --> Quote
+  Guard -->|Yes| Dispatch[Mark and dispatch once]
+  Dispatch --> Result{Authoritative outcome?}
+  Result -->|Unknown| Hold[Hold and reconcile]
+  Hold --> Result
+  Result -->|Proven no order| Requote
+  Result -->|Confirmed resi| Confirmed[Confirmed shipment]
+  Confirmed --> Invoice[Issue immutable invoice]
+  Invoice --> Label{Provider label printable?}
+  Label -->|No| Wait[Wait for label]
+  Wait --> Label
+  Label -->|Yes| Pack[Preview and print documents]
+  Pack --> Reprint[Reprint same documents]
+  Confirmed --> Pickup[Verified pickup evidence]
+  Pickup --> Finance[Eligible estimate with approved inputs]
+  Confirmed --> Cancel[Request eligible cancellation]
+  Cancel --> CancelResult{Provider cancellation outcome?}
+  CancelResult -->|Unknown| CancelHold[Reconcile same cancellation]
+  CancelHold --> CancelResult
+  CancelResult -->|Rejected| Confirmed
+  CancelResult -->|Confirmed| History[Retain cancelled history]
+```
+
+The cancellation unknown path means reconciliation of the same request, never sending another cancellation. Local draft cancellation is allowed only before any queued or possibly dispatched create under the state matrix. Invoice issuance may precede label availability, but the combined print action waits for both documents. Historical invoice reprint remains available under its own guard even if the provider label is no longer printable.
+
 1. Server resolves the Google OAuth-authenticated provider subject to a GeraiHub user, then active branch, membership, and action permission.
-2. Operator saves a branch-owned draft and obtains a current provider estimate from the backend.
-3. Operator verifies package values; any material change invalidates prior quote confirmation.
-4. Server records final quote version and direct-payment record under one transaction/audit boundary.
-5. Submission creates one idempotency/correlation record, then dispatches provider order creation serially or in a provider-supported batch. Current Mengantar documentation must determine the exact concurrency strategy.
-6. On provider confirmation, persist tracking/label mapping, transition state, and enable print. Timeout/ambiguous response stays pending reconciliation.
-7. Print/reprint requires confirmed mapping and writes audit only.
+2. Operator reviews the active gerai pickup point, selects or creates branch-local sender and recipient contacts, enters item lines/declared goods total, and saves a branch-owned draft. The server obtains a current provider estimate only for validated provider-required fields.
+3. Operator verifies package values and sender/recipient, origin, item, collection mode, shipping allocation, intended courier COD amount, and charge summary. Non-COD is the default; COD ongkir/produk require per-service verified eligibility. Any material change invalidates prior quote confirmation.
+4. Server records physical verification and the confirmed final quote version under one transaction/audit boundary; customer payment remains manual outside GeraiHub.
+5. Submission creates one idempotency/correlation record pinned to the quote's provider-account mapping/version. Immediately before dispatch the worker checks freshness/readiness, durably marks dispatch start and sends under the verified provider concurrency strategy. A stale, provably never-dispatched operation returns to review atomically; potentially dispatched operations reconcile only.
+6. On provider confirmation, persist tracking/label mapping, transition state, and enable resi/label and invoice issuance. Timeout/ambiguous response stays pending reconciliation with neither document issued.
+7. The counter `Cetak resi + invoice` action issues the invoice idempotently if needed, then prepares both documents from the same confirmed shipment. One print-ready job is used only if provider label dimensions/media remain intact; otherwise the operator follows two ordered print steps. Individual reprints reuse the same invoice and provider mapping. A failed print request changes neither document identity nor provider state.
 
 ### Cancellation
 
@@ -63,7 +118,7 @@ The system is organization-aware but branch-operational: an owner may belong to 
 
 ## 4. Required State-Transition Guards
 
-- No submission without valid active branch, required verified package data, valid final quote, direct-payment record policy, and no confirmed prior provider order.
+- No submission without valid active branch, required verified package data, confirmed current final quote, and no confirmed prior provider order. No customer-payment state is part of the guard.
 - No duplicate submit when a prior request is pending/unknown; reconcile first.
 - No print/reprint for unconfirmed/non-printable provider state.
 - No local “cancelled” state for a submitted order before authoritative provider result.
@@ -93,13 +148,19 @@ The repository remains documentation-only and has no application package manifes
 | Contract area | Required safe evidence | Unresolved behavior |
 |---|---|---|
 | Estimate | Current official schema and a separately authorized, backend-only sandbox non-COD estimate; sanitized HTTP status, shape, eligibility flags, account/environment, and actual observation date | Required fields, units, quote validity, courier/account availability |
+| COD modes and fee | Current provider documentation/account confirmation and separately authorized sanitized sandbox observations per courier/service | COD ongkir versus COD produk fields, goods/shipping split, optional shipping inclusion, amounts/limits; verify the 3.33% planning rate against actual fee base/rounding, payer, add-or-deduct behavior, collection and remittance semantics; unsupported combinations remain disabled |
 | Submit and retry | Current docs/support contract plus approved sandbox-only mutation evidence when available | Idempotency semantics, duplicate detection, timeout recovery, insufficient balance, concurrency scope/limits |
 | Label | Current docs and sanitized sandbox label mapping | Retrieval method, authorization/URL handling, printable states, cancellation invalidation |
 | Pickup/status | Documented source/event/status mapping and sanitized observation | Ordering, freshness, polling or webhook support; no webhook endpoint assumed |
 | Cancellation | Documented eligibility/state/financial effects and separately approved sandbox exercise | Request/status fields, terminal outcomes, ambiguous timeout and reversal behavior |
 | Account mapping | Provider/account-owner confirmation and approved branch configuration evidence | Account/pickup ownership, one-account-per-branch feasibility, wallet scope |
+| Finance snapshots | Current documented read capability plus authorized sanitized observation tied to provider account and shipment identifiers | Balance, COD/remittance/settlement, cost, discount/cashback availability; field authority, units/currency, pagination, freshness, historical correction and rate limits |
 
 No provider call has been executed by this documentation work. Documentation alone is not runtime proof. No production shipment is created for validation; the minimum estimate smoke does not authorize order/cancel tests. Unavailable sandbox capabilities require a documented provider-supported validation path and explicit approval, not guessed fixtures presented as evidence. T-10 gates T-11 through T-15 where applicable.
+
+T-10 records evidence per capability; completion of one capability never closes the others. T-11 requires estimate, submit/retry and order-status evidence; T-12 additionally requires label evidence; T-13 requires cancellation evidence; T-14 may test local draft branches but cannot activate real provider mappings before account/readiness verification; T-15 requires finance-snapshot evidence; T-22 also requires pickup mapping and approved formula examples. A local synthetic domain fixture is not a claim about a provider wire format.
+
+For each finance field, record its authoritative source, account/shipment correlation, unit/precision, observation/effective time, refresh/pagination behavior, and missing/stale/revised semantics. A supported balance read does not prove settlement, discount, or cashback history is available. Unsupported fields remain unavailable with an explicit explanation; they must not become zero, be inferred from estimate prices, or be scraped from an undocumented interface. If PR-8/PR-9 cannot be met by verified read capabilities, keep the affected task blocked and request a product scope decision.
 
 ## 8. Verification Plan
 
