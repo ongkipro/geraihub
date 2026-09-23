@@ -4,9 +4,9 @@
 
 | Field | Value |
 |---|---|
-| Status | Draft — logical model |
+| Status | Accepted logical/physical baseline; migration/runtime evidence pending |
 | Version / updated | 0.2 / 2026-09-23 |
-| Database/runtime | PostgreSQL + Drizzle proposed; accept under T-2 before implementation |
+| Database/runtime | PostgreSQL + Drizzle accepted under ADR-001; exact package versions and generated SQL remain T-1/T-3 evidence |
 | Design principle | Mengantar owns provider/settlement truth; GeraiHub stores scoped operational records, provider snapshots, and reconciliation evidence. |
 | Authority | Canonical repository specification; promoted from the retained planning snapshot on 2026-09-23 |
 
@@ -106,3 +106,56 @@ Indexes are logical candidates; validate with real query plans and expected work
 3. Add quote/provider-sync/audit models with idempotency and append-only correction rules.
 4. Add reconciliation/estimated-profit views after provider status/pickup contract is verified.
 5. Add public draft reference/QR only for the approved post-MVP phase; do not expose a public lookup before abuse and privacy tests pass.
+
+
+## 8. Physical Schema Baseline
+
+Exact Drizzle declarations and generated SQL are implementation artifacts, but T-3 MUST preserve this minimum physical model.
+
+### Common column rules
+
+- Internal primary keys are opaque UUID-compatible identifiers; no sequential public customer identifier is exposed.
+- Timestamps use timezone-aware PostgreSQL timestamps and are stored in UTC; UI/report grouping uses the branch IANA timezone.
+- GeraiHub-owned IDR money uses exact integer rupiah storage compatible with PostgreSQL `BIGINT`, per ADR-004.
+- Mutable aggregates include a monotonic `version BIGINT NOT NULL` starting at 1.
+- Core authorization/state fields use constrained values through checked text/enum strategy selected in migration review; arbitrary free-text states are prohibited.
+- Required ownership columns are `NOT NULL`; branch-owned child tables must be constrained back to the same shipment/organization/branch ownership.
+- Generic soft-delete flags are not a substitute for explicit lifecycle states. Historical financial/provider/audit records are append-only or retired through explicit lifecycle records.
+- Core relational invariants must not be hidden only inside JSON. JSON/JSONB may hold sanitized provider metadata only where its schema is adapter-versioned and not used as the sole authorization/financial source.
+
+### Minimum table families
+
+| Table family | Minimum purpose/invariant |
+|---|---|
+| `organizations` | Business ownership boundary and lifecycle |
+| `branches` | Organization-owned operational boundary, timezone, activation lifecycle |
+| auth-adapter tables | Better Auth physical identity/session/account tables after installed-version review |
+| `users` / business user profile | GeraiHub-owned stable internal identity relation where needed by adapter design |
+| `invitations` | Intended email/scope/role, expiry, one-time consumption/revocation, resulting provider subject |
+| `memberships` | Organization/branch scoped roles with active lifecycle and duplicate-active-grant prevention |
+| `jit_grants` | Named branch, requester, distinct approver, purpose, grant/expiry/revocation |
+| `shipments` | Immutable organization/branch ownership, state dimensions, current quote pointer, version |
+| `shipment_quotes` | Immutable quote versions and confirmation/freshness evidence |
+| `payment_records` | Append-only cash/QRIS operational receipt evidence |
+| `payment_correction_requests` | Admin request, before/after, reason, expected payment/version |
+| `payment_correction_decisions` | Singular owner approve/reject outcome; no rewrite of original payment |
+| `provider_operations` | Durable outbox/operation state, correlation, attempts, lease, retry/reconciliation metadata |
+| `provider_mappings` | Confirmed provider order/resi/label mapping under verified account scope |
+| `cancellation_requests` | Request/reason and authoritative provider outcome history |
+| `finance_snapshots` / reconciliation items | Non-authoritative provider snapshots/mismatch inputs |
+| `audit_events` | Append-only redacted actor/scope/resource/action/outcome/correlation evidence |
+
+### Mandatory uniqueness/constraint directions
+
+- unique provider identity link on `(provider, issuer, subject)`;
+- one-time invitation consumption enforced transactionally;
+- no duplicate active membership for the same user/role/scope;
+- branch must belong to shipment organization through composite ownership enforcement;
+- child shipment records cannot reference another branch/organization;
+- one singular active/valid direct-payment record per applicable shipment/payment contract, with corrections appended separately;
+- one provider operation identity/correlation per logical side-effect intent;
+- confirmed provider tracking/resi uniqueness within the verified provider/account scope;
+- one pending correction request per affected payment/version where required;
+- one final correction decision per request.
+
+Generated SQL must be reviewed in T-3. Constraint names/index shape may change for PostgreSQL/Drizzle ergonomics, but weakening these invariants requires an ADR/spec change.

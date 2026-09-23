@@ -4,11 +4,11 @@
 
 | Field | Value |
 |---|---|
-| Status | Draft — framework-neutral baseline; visual and operational gates pending |
+| Status | Accepted framework-neutral baseline; implementation evidence pending |
 | Version / updated | 0.3 / 2026-09-23 |
 | Accountable owner | Product owner |
 | Applies to | GeraiHub authenticated operator, branch-admin, owner, finance, and platform-governance web surfaces |
-| Locale | Bahasa Indonesia (`id-ID`), IDR, `Asia/Jakarta` business-time default pending production policy |
+| Locale | Bahasa Indonesia (`id-ID`), IDR; each branch has an explicit IANA timezone, defaulting to `Asia/Jakarta` only when applicable |
 | Authority | Canonical repository specification; promoted from the retained planning snapshot on 2026-09-23 |
 
 ## 1. Scope and Direction
@@ -57,7 +57,7 @@ Use native HTML controls first. A component library may be selected only after T
 - Target sizes: primary counter actions have a practical minimum 40 by 40 CSS px when touch is expected.
 - Respect `prefers-reduced-motion`; use no essential animation. Transitions must be short and removable without loss of state information.
 - UI copy is Bahasa Indonesia. Use familiar, explicit labels: `Simpan draf`, `Verifikasi paket`, `Catat pembayaran`, `Kirim ke Mengantar`, `Cetak ulang`, `Ajukan pembatalan`.
-- Dates/times show timezone in audit/detail contexts. Address and phone input validation follows the verified Mengantar contract; do not invent restrictive Indonesian-name/address rules.
+- Dates/times show the branch timezone in operational/audit/detail contexts. Every branch stores an explicit IANA timezone; `Asia/Jakarta` is the initialization default only for branches confirmed to operate in WIB. Address and phone input validation follows the verified Mengantar contract; do not invent restrictive Indonesian-name/address rules.
 
 ## 6. Implementation and Validation Boundary
 
@@ -81,6 +81,5 @@ Required deliverables are source code, deterministic fixtures, and repeatable br
 
 | Item | Owner | Gate |
 |---|---|---|
-| Production timezone if branches operate outside `Asia/Jakarta` | Product owner | Before first non-Jakarta branch activation |
 | Brand logo, final palette, and any paid component library | Product owner | Before public/operator visual release; does not block backend/auth work |
 | Phone-only counter support | Product owner | Before claiming mobile-counter support |

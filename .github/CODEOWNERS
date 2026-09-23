@@ -1,0 +1,6 @@
+# Initial repository ownership. Add specialist owners when actual approvers are appointed.
+* @ongkipro
+/docs/spec/ @ongkipro
+/docs/adr/ @ongkipro
+/scripts/ @ongkipro
+/.github/ @ongkipro
