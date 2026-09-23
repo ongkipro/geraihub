@@ -63,8 +63,8 @@ Role names are an initial product decision; the implementation must authorize st
 | Manage staff-pengiriman membership | Deny | Deny | Requires separately held branch-admin membership | Own branch | Deny | Deny |
 | View tenant shipment details | Deny by default | Approved scope/time, read-only | Explicit own branch | Own branch | Own branch | Read: own branch |
 | Create/edit draft, verify, record payment, submit, print, request permitted cancellation | Deny | Deny | Requires separately held operator/admin membership | Own branch | Own branch | Deny |
-| Request payment correction | Deny | Deny | Only BILL-3 exceptional self-correction policy | Own branch, reason required | Deny | Deny |
-| Approve/reject payment correction or external refund record | Deny | Deny | Own branch under BILL-3 and BILL-4 | Deny | Deny | Deny |
+| Request payment correction | Deny | Deny | Only through a separately held branch-admin permission; requester cannot decide the same request | Own branch, reason required | Deny | Deny |
+| Approve/reject payment correction or external refund record | Deny | Deny | Own branch under BILL-3 and BILL-4; must not be requester | Deny | Deny | Deny |
 | View local audit/reconciliation | Aggregate only | Approved read scope | Explicit own branch | Own branch | Own shipment/operational summary only | Read: own branch |
 | View estimated profit/report | Aggregate only | Deny | Own organization aggregate or explicit own branch | Own branch | Cash/QRIS operational summary only | Own branch |
 | Override provider financial truth / settlement | Deny | Deny | Deny | Deny | Deny | Deny |
@@ -87,7 +87,7 @@ An owner title is not an implicit operator grant. Existing policy grants owners 
 - A platform super admin who is not the requester approves or rejects it.
 - Maximum grant duration is 60 minutes; shorter duration is preferred.
 - The grant is read-only for shipment/customer diagnostics in MVP. No payment, correction, submit, print, cancellation, export, role mutation, or provider-financial mutation is authorized.
-- Re-authentication or an equivalent recent-session check is required at grant activation according to the selected auth framework.
+- A fresh session no older than the ADR-005 freshness window (planning default: 15 minutes) is required at grant activation; otherwise re-authenticate through Google.
 - Expiry and revocation are enforced on the next protected request, not merely hidden in the UI.
 - If no distinct approver is available, tenant-detail JIT access remains unavailable; there is no self-approval emergency bypass in MVP.
 
@@ -110,7 +110,7 @@ A super admin may see minimum metadata needed to triage a tenant issue. Opening 
 - A gerai owner can appoint/remove gerai admins only for an explicitly selected branch within the authorized organization.
 - An organization owner may view an aggregate dashboard/report across authorized branches, but shipment search, customer details, print, payment, submit, correction, and cancellation always require one explicit branch context. No cross-branch operational queue or bulk operational action is permitted.
 - Gerai admins can invite, suspend, and remove staff-pengiriman only within their authorized gerai.
-- Suspended users and removed memberships are denied on the next protected request using authoritative membership state. Session lifetime, caching/revocation mechanism, and bounded expiry settings must be documented and tested before auth release.
+- Suspended users and removed memberships are denied on the next protected request using authoritative membership state. ADR-005 accepts database-backed Better Auth sessions, no session cookie cache for MVP, a 12-hour planning expiry, 1-hour refresh age, and 15-minute freshness window; T-4 must verify the exact installed configuration.
 - Account recovery never matches by email alone. An authorized administrator revokes the old provider-account link/memberships as appropriate, records the recovery reason/audit, and issues a new controlled invitation. Automatic merging of two Google subjects is prohibited.
 - A user may not self-assign a higher role, select another tenant through the client, or preserve access after membership removal.
 
@@ -127,3 +127,4 @@ A super admin may see minimum metadata needed to triage a tenant issue. Opening 
 | IAM-T7 | A valid Google-authenticated account has no GeraiHub invitation/membership. | Deny application access; no default branch or role is created. |
 | IAM-T8 | An attacker changes/uses a matching email but has a different Google provider subject. | Do not attach to an existing GeraiHub account; require controlled account-link/recovery flow. |
 | IAM-T9 | OAuth callback has an unapproved redirect/origin/state/PKCE validation failure. | Deny callback, create no session/membership, and emit a safe security event. |
+| IAM-T10 | A multi-branch user switches A → B, then replays a stale branch-A tab/context request. | Deny/no branch-A disclosure or mutation; current server context and immutable resource ownership are revalidated. |
