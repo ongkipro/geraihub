@@ -19,8 +19,8 @@
 - Status: Blocked — development authorization required
 - Owner: Engineering owner
 - Primary requirement: TD-9
-- Constraints: SEC-8, PRIV-13
-- Dependencies: T-2
+- Constraints: SEC-8, SEC-15, PRIV-13
+- Dependencies: T-2, T-23
 - Current evidence: Documentation-only repository; no source tree, package manifest, lockfile, installed dependency, migration, or application check exists.
 - Done when: After explicit development authorization, initialize the accepted profile and, from a clean checkout in an approved local environment, execute documented install, lint/typecheck, tests, startup, migration, and synthetic seed commands. Record prerequisites and results without proprietary AI tools or live provider writes.
 
@@ -30,8 +30,17 @@
 - Primary requirement: TD-9
 - Constraints: TD-2, SEC-2, SEC-4, SEC-14, PRIV-11
 - Dependencies: None
-- Current evidence: ADR-001 accepts Node.js 24 LTS major, Next.js App Router, PostgreSQL, Drizzle, Better Auth, and separate web/worker processes from one modular-monolith codebase. ADR-002 through ADR-004 fix tenant enforcement, outbox/reconciliation, exact money, and concurrency policy. No installed package/lockfile/runtime evidence exists yet.
+- Current evidence: ADR-001 accepts Node.js 24 LTS major, pnpm, Next.js App Router, PostgreSQL, Drizzle, Better Auth, and separate web/worker processes from one modular-monolith codebase. ADR-002 through ADR-005 fix tenant enforcement, outbox/reconciliation, exact money/concurrency, and session/active-branch policy. Current official stack documentation was rechecked on 2026-09-23; no installed package/lockfile/runtime evidence exists yet.
 - Done when: Review compatible web runtime, auth adapter, PostgreSQL/Drizzle, worker/outbox execution, deployment, and secret/backup boundaries against current official documentation. Record one accepted profile with reasons and unresolved production gates; T-1 then initializes and verifies actual locked package versions and API compatibility. Do not create source code, remote resources, or credentials as part of this selection task.
+
+### T-23 — Enable and verify canonical branch protection
+- Status: Planned — GitHub currently reports `main` unprotected and no ruleset active
+- Owner: Repository owner
+- Primary requirement: TD-9
+- Constraints: SEC-15
+- Dependencies: None
+- Current evidence: Specification Validation exists and has passed on the hardened baseline, but branch/ruleset administration is still disabled as observed on 2026-09-23.
+- Done when: GitHub branch/ruleset evidence shows pull-request-only changes to `main`, required `Specification Validation / validate` status, blocked force pushes/deletion, and required conversation resolution. Require at least one independent approval when more than one maintainer is available. Record the observed ruleset/protection result without exposing credentials.
 
 ### T-3 — Build organization, branch, identity, invitation, and membership persistence
 - Status: Planned
@@ -42,7 +51,7 @@
 - Done when: Apply local migrations and execute synthetic integration tests for organization/branch ownership, unique provider-subject links, one-time/expired/revoked invitation acceptance, concurrent acceptance, permitted multi-branch memberships, and duplicate active-grant rejection. Record resulting schema/constraint evidence.
 
 ### T-4 — Implement Google OAuth and GeraiHub provisioning
-- Status: Planned — identity/recovery policy accepted; runtime implementation pending
+- Status: Planned — identity/recovery/session policy accepted; runtime implementation pending
 - Owner: Engineering owner
 - Primary requirement: PR-11
 - Constraints: IAM-1, IAM section 2 and authorization cases, SEC-2 through SEC-4

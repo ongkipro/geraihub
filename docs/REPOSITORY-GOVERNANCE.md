@@ -4,19 +4,27 @@
 
 `main` is the canonical accepted repository state. Material changes should arrive through a reviewable pull request with the Specification Validation workflow passing.
 
-Recommended GitHub branch/ruleset controls:
+Required GitHub branch/ruleset controls:
 
 - require pull requests before merge;
 - require the `Specification Validation / validate` status check;
 - block force pushes and branch deletion;
 - require conversation resolution;
-- optionally require at least one approving review once more than one maintainer exists.
+- require at least one approving review once more than one independent maintainer exists.
 
-These settings are repository-administration controls and are not claimed enabled merely because this document exists.
+As observed on 2026-09-23, GitHub reports `main` as unprotected and no repository ruleset is active. T-23 is the canonical administration gate for enabling and verifying these controls; documentation does not pretend they are already active.
 
 ## Ownership
 
 `.github/CODEOWNERS` currently points to the repository owner as a bootstrap owner. Replace/add actual engineering, security, privacy, finance, design, and operations approvers when appointed. A CODEOWNERS entry does not waive separation-of-duties gates defined in the specifications.
+
+## Supply-chain and workflow baseline
+
+- Every reusable GitHub Action is pinned to a full 40-character commit SHA; the human-readable release tag is kept as a comment.
+- Workflow permissions stay least-privilege and checkout must not retain push credentials for read-only validation.
+- Once `package.json` exists, pnpm is the sole JavaScript package manager; `packageManager` pins the pnpm version and `pnpm-lock.yaml` is committed.
+- CI installs application dependencies with a frozen lockfile. A second npm/yarn/bun lockfile is a repository validation failure.
+- Dependency/runtime/action upgrades are reviewable changes with test evidence; no auto-merge of security-sensitive upgrades is implied.
 
 ## Change classes
 

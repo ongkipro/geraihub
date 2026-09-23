@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import json
 import re
 import sys
 from collections import defaultdict, deque
@@ -11,8 +12,13 @@ errors: list[str] = []
 
 REQUIRED = [
     "README.md",
+    "STATUS.md",
     "PRD.md",
     "TASKS.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "docs/REPOSITORY-GOVERNANCE.md",
+    ".github/workflows/spec-validation.yml",
     "docs/spec/README.md",
     "docs/spec/02-PRD.md",
     "docs/spec/03-TECHNICAL-DESIGN.md",
@@ -33,6 +39,7 @@ REQUIRED = [
     "docs/spec/18-ERROR-AND-RESULT-CONTRACT.md",
     "docs/spec/CONTEXT-RECORD.md",
     "docs/adr/README.md",
+    "docs/adr/ADR-005-SESSION-ACTIVE-BRANCH-CONTEXT.md",
 ]
 
 for rel in REQUIRED:
@@ -122,6 +129,33 @@ if tasks_path.is_file():
 
     if visited != len(deps):
         errors.append("task dependency graph contains a cycle")
+
+# Reusable GitHub Actions must be pinned to immutable commit SHAs.
+workflow_dir = ROOT / ".github/workflows"
+if workflow_dir.is_dir():
+    uses_re = re.compile(r"^\s*uses:\s*[^@\s]+@([^\s#]+)", re.M)
+    for path in sorted(list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml"))):
+        text = path.read_text(encoding="utf-8")
+        for ref in uses_re.findall(text):
+            if not re.fullmatch(r"[0-9a-f]{40}", ref):
+                errors.append(f"workflow action not pinned to full SHA: {path.relative_to(ROOT)} -> {ref}")
+
+# Once application code exists, enforce one reproducible JavaScript package-manager contract.
+package_json = ROOT / "package.json"
+if package_json.is_file():
+    try:
+        package = json.loads(package_json.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        errors.append(f"invalid package.json: {exc}")
+    else:
+        package_manager = str(package.get("packageManager", ""))
+        if not re.fullmatch(r"pnpm@[^\s]+", package_manager):
+            errors.append("package.json must pin packageManager as pnpm@<exact-version>")
+        if not (ROOT / "pnpm-lock.yaml").is_file():
+            errors.append("package.json exists but pnpm-lock.yaml is missing")
+        for conflicting in ["package-lock.json", "yarn.lock", "bun.lock", "bun.lockb"]:
+            if (ROOT / conflicting).exists():
+                errors.append(f"conflicting JavaScript lockfile present: {conflicting}")
 
 # Canonical validation must not depend on one developer's home-directory tooling.
 for rel in ["README.md", "docs/spec/README.md"]:

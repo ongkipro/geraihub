@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| Status | Draft |
+| Status | Accepted UX planning contract; implementation/browser evidence pending |
 | Version / updated | 0.2 / 2026-09-23 |
 | Primary surface | Indonesian gerai operator web application |
 | Primary input | Desktop/tablet, keyboard, barcode/QR scanner where available |
@@ -17,7 +17,7 @@ GeraiHub is an operational counter tool, not a consumer checkout. The primary us
 Use Bahasa Indonesia, `id-ID` currency formatting, and a confirmed business-timezone policy. The UI must distinguish clearly between GeraiHub operational records and Mengantar-authoritative information.
 
 ### UX-1 — Safe counter and governance screen contract
-- Status: Draft
+- Status: Accepted planning contract
 - Owner: Design owner
 - Source: PR-1 through PR-11; NFR-2; IAM-1
 - Statement: Implement the MVP journeys, screen states, and role boundaries in sections 2–5 and 7; section 6 is post-MVP only. Reusable presentation/accessibility follows the design-system document.

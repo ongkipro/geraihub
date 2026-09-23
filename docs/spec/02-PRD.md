@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| Status | Draft |
+| Status | Accepted product planning baseline; external/runtime evidence pending |
 | Version / updated | 0.2 / 2026-09-23 |
 | Authority | Canonical repository specification; promoted from the retained planning snapshot on 2026-09-23 |
 | Product owner | GeraiHub product owner |

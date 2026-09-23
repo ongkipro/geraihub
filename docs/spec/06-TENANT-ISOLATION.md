@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| Status | Draft |
+| Status | Accepted isolation contract; runtime verification pending |
 | Version / updated | 0.2 / 2026-09-23 |
 | Accountable owner | Security owner |
 | Decision | An owner organization can operate multiple gerai branches; each operational request has exactly one active branch context. |
@@ -27,7 +27,7 @@
 | TEN-5 | Security owner | Platform staff have no routine branch shipment access; support access is explicit, tenant/branch-bound, expiring, and audited. | JIT policy | Support access test |
 
 ### TEN-6 — Context freshness across entry points
-- Status: Draft
+- Status: Accepted planning contract
 - Owner: Security owner
 - Source: TEN-1, SEC-6; context rules below
 - Statement: Branch switching must invalidate branch-sensitive client state; every subsequent read, mutation, cache lookup, and background job must validate current authorization and persisted resource ownership. A stale tab/context must never silently operate on another branch.

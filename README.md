@@ -7,6 +7,7 @@ This repository currently contains **planning and specification documents only**
 ## Documentation status
 
 - **Authority:** This repository is the canonical planning source.
+- **Current status:** [`STATUS.md`](STATUS.md).
 - **Execution queue:** [`TASKS.md`](TASKS.md).
 - **Product entry point:** [`PRD.md`](PRD.md).
 - **Specification pack:** [`docs/spec/`](docs/spec/).
@@ -19,6 +20,7 @@ This repository currently contains **planning and specification documents only**
 
 | Path | Purpose |
 |---|---|
+| [`STATUS.md`](STATUS.md) | Current phase, verified repository state, blockers, and next gates |
 | [`PRD.md`](PRD.md) | Stable entry point to the canonical product requirements |
 | [`TASKS.md`](TASKS.md) | Sole future implementation queue and dependency order |
 | [`docs/spec/README.md`](docs/spec/README.md) | Specification index and ownership map |
@@ -49,7 +51,7 @@ Structural validation proves document identifiers, owners, task references, and 
 - legal or privacy compliance;
 - working UI, security controls, database behavior, or deployment readiness.
 
-The accepted implementation baseline is Node.js 24 LTS major + Next.js App Router + PostgreSQL + Drizzle + Better Auth, with separate web and durable worker processes from one modular-monolith codebase; exact package versions and compatibility are not evidence until T-1 creates the lockfile and executes the checks. Production hosting/vendor/region remain gated.
+The accepted implementation baseline is Node.js 24 LTS major + pnpm + Next.js App Router + PostgreSQL + Drizzle + Better Auth, with separate web and durable worker processes from one modular-monolith codebase. ADR-005 adds database-backed sessions with server-owned active-branch context. Exact package versions and compatibility are not evidence until T-1 creates the lockfile and executes the checks. Production hosting/vendor/region remain gated.
 
 Validate the current documentation repository with:
 
