@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| Status | Draft |
+| Status | Accepted planning policy; runtime verification pending |
 | Version / updated | 0.2 / 2026-09-23 |
 | Accountable owner | Security owner |
 | Applies to | GeraiHub platform staff and whitelisted partner-gerai users |
@@ -19,7 +19,7 @@ Google is the authentication identity provider, not GeraiHub's authorization dat
 `platform` scope and `gerai` scope are deliberately separate. Platform super-admin access does not automatically confer access to a gerai's shipments or customer data.
 
 ### IAM-1 — GeraiHub owns authorization after Google authentication
-- Status: Draft
+- Status: Accepted planning policy
 - Owner: Security owner
 - Source: PR-11, Q-7, OVR-3
 - Statement: Validated Google identity resolves to a unique GeraiHub provider-subject link; only approved, active GeraiHub memberships and scoped permissions authorize access. Email/name/avatar never grant a role or link an existing account automatically.
@@ -34,7 +34,7 @@ Google is the authentication identity provider, not GeraiHub's authorization dat
 | Sign-in method | Google OAuth only for MVP. No local password, public self-registration, or email-link flow. |
 | Account matching | Link by Google OpenID Connect stable subject (`sub`) stored in GeraiHub's provider-account table; do not match only on mutable email. |
 | First login | Default deny. Successful Google authentication creates/links a GeraiHub identity only through a pre-created invitation or approved platform/branch membership flow. It grants no role automatically. |
-| Invitations | Platform super admin invites initial organization owner; owner invites gerai admin; gerai admin invites staff-pengiriman. Invitation acceptance requires the intended Google account/email policy and records inviter, scope, role, expiry, acceptance, and resulting provider subject. Exact email-change policy is an implementation decision. |
+| Invitations | Platform super admin invites initial organization owner; owner invites gerai admin; gerai admin invites staff-pengiriman. Invitation stores a normalized intended email and expires after a bounded configured period. Acceptance requires Google to assert `email_verified=true` and an email equal to the intended invitation email; the transaction then binds the stable Google `sub`. After binding, later email changes never relink or merge an account automatically. |
 | Account removal | Suspend/revoke GeraiHub membership/session; do not depend on deleting/revoking the person's Google account. |
 | Google tokens | Do not request or retain Google API access/refresh tokens unless a separately approved feature needs them. Authentication identity is sufficient. |
 | OAuth client | One GeraiHub-controlled OAuth client per environment; authorized redirect URIs and trusted origins are explicit allowlists. Client secret stays only in approved server-side secret storage. |
@@ -69,7 +69,7 @@ Role names are an initial product decision; the implementation must authorize st
 | View estimated profit/report | Aggregate only | Deny | Own organization aggregate or explicit own branch | Own branch | Cash/QRIS operational summary only | Own branch |
 | Override provider financial truth / settlement | Deny | Deny | Deny | Deny | Deny | Deny |
 
-An owner title is not an implicit operator grant. Existing policy grants owners management/report access; a person doing counter work must also hold an approved branch operator/admin membership. JIT remains diagnostic read-only in MVP; mutating support access needs a separate approved policy. BILL-3's exceptional owner self-correction requires explicit branch exception configuration and audit review, never an implicit bypass.
+An owner title is not an implicit operator grant. Existing policy grants owners management/report access; a person doing counter work must also hold an approved branch operator/admin membership. JIT remains diagnostic read-only in MVP; mutating support access is out of scope. Owner self-correction is disabled for MVP under BILL-3.
 
 ## 5. Sensitive Action Rules
 
@@ -79,7 +79,17 @@ An owner title is not an implicit operator grant. Existing policy grants owners 
 | Submission/retry | Authorized gerai; no confirmed prior submission; provider request idempotency key | Actor, transition, correlation, provider outcome | Reconcile provider state before another attempt |
 | Print/reprint | Confirmed printable provider state | Actor, label/resi reference, print/reprint flag | Reprint never submits again |
 | Cancellation | Current state and provider eligibility checked; operator gives reason | Actor, reason code, requested/authoritative provider outcome, correlation | Pending/rejected outcome remains visible; no local false-success |
-| JIT support access | Ticket/purpose, named gerai, approver, expiry | Grant, every accessed resource/action, automatic expiry, review | Revoke immediately; review access log |
+| JIT support access | Ticket/purpose, named gerai, non-requester platform-super-admin approver, maximum 60-minute expiry | Grant, every accessed resource/action, automatic expiry, review | Revoke immediately; review access log |
+
+### 5.1 JIT approval policy
+
+- A platform-support user requests access to one named branch with a ticket/purpose.
+- A platform super admin who is not the requester approves or rejects it.
+- Maximum grant duration is 60 minutes; shorter duration is preferred.
+- The grant is read-only for shipment/customer diagnostics in MVP. No payment, correction, submit, print, cancellation, export, role mutation, or provider-financial mutation is authorized.
+- Re-authentication or an equivalent recent-session check is required at grant activation according to the selected auth framework.
+- Expiry and revocation are enforced on the next protected request, not merely hidden in the UI.
+- If no distinct approver is available, tenant-detail JIT access remains unavailable; there is no self-approval emergency bypass in MVP.
 
 ## 6. Super-Admin Operating Boundary
 
@@ -100,7 +110,8 @@ A super admin may see minimum metadata needed to triage a tenant issue. Opening 
 - A gerai owner can appoint/remove gerai admins only for an explicitly selected branch within the authorized organization.
 - An organization owner may view an aggregate dashboard/report across authorized branches, but shipment search, customer details, print, payment, submit, correction, and cancellation always require one explicit branch context. No cross-branch operational queue or bulk operational action is permitted.
 - Gerai admins can invite, suspend, and remove staff-pengiriman only within their authorized gerai.
-- Suspended users and removed memberships are denied on the next protected request using authoritative membership state; Google OAuth is already selected. Session lifetime, caching/revocation mechanism, and bounded expiry settings must be documented and tested before auth release.
+- Suspended users and removed memberships are denied on the next protected request using authoritative membership state. Session lifetime, caching/revocation mechanism, and bounded expiry settings must be documented and tested before auth release.
+- Account recovery never matches by email alone. An authorized administrator revokes the old provider-account link/memberships as appropriate, records the recovery reason/audit, and issues a new controlled invitation. Automatic merging of two Google subjects is prohibited.
 - A user may not self-assign a higher role, select another tenant through the client, or preserve access after membership removal.
 
 ## 8. Required Authorization Tests
