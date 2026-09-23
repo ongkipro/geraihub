@@ -29,13 +29,13 @@ The system is organization-aware but branch-operational: an owner may belong to 
 | TD-8 | Engineering owner | Audit/observability | Immutable operational/security events and redacted diagnostics | Audit events | Never log secrets/full payloads; alert reconciliation/security failures. |
 
 ### TD-9 — Reproducible implementation foundation
-- Status: Proposal
+- Status: Accepted planning requirement
 - Owner: Engineering owner
 - Source: NFR-1, NFR-4; terminal-independent delivery constraint in TASKS.md
 - Statement: The future repository must pin its selected runtime/package versions and provide documented non-interactive install, lint/typecheck, tests, local startup, migrations, and synthetic seed commands without a proprietary AI/IDE dependency.
 - Acceptance: From a clean checkout in an approved local environment, a developer executes the documented commands with declared prerequisites; required checks succeed without live provider writes or production credentials.
 - Constraints: SEC-8, PRIV-13
-- Change history: Added during planning audit to anchor setup and stack tasks; stack selection remains unapproved.
+- Change history: Added during planning audit; runtime/deployment baseline accepted by ADR-001 while exact installed versions remain T-1 evidence.
 
 ## 3. Key Flows
 
@@ -72,7 +72,7 @@ The system is organization-aware but branch-operational: an owner may belong to 
 
 ## 5. Interface Boundaries
 
-- Internal operation boundaries and contract gates are defined in `09-API-SPECIFICATION.md`; implementation selects the exact HTTP/session/schema representation from installed framework evidence. Do not invent provider cancellation endpoint or payload until current Mengantar contract is verified.
+- Internal operation boundaries and contract gates are defined in `09-API-SPECIFICATION.md`; state/concurrency ownership is defined in `08-STATE-CONCURRENCY-CONTRACT.md`; safe error semantics are defined in `18-ERROR-AND-RESULT-CONTRACT.md`. Implementation selects exact HTTP/session/schema transport from installed framework evidence. Do not invent provider cancellation endpoint or payload until current Mengantar contract is verified.
 - Provider adapter is server-only and logs sanitized request metadata/outcomes, never credential URL or customer payload.
 - Database constraints implement ownership/idempotency invariants from `05-DATA-MODEL.md`.
 - Authorization checks use action vocabulary from `07-IAM-RBAC-ABAC.md`, not client-selected role strings.
@@ -88,7 +88,7 @@ The system is organization-aware but branch-operational: an owner may belong to 
 
 ## 7. Stack and Provider Evidence Gates
 
-The repository exists at `~/Projects/geraihub/` as a documentation-only planning repository. It has no source tree, package manifest, lockfile, installed dependency, or runtime evidence. Modular monolith, PostgreSQL, Drizzle, Better Auth, and a web framework remain target recommendations, not accepted implementation evidence. T-2 selects the compatible runtime/deployment profile from current official documentation; T-1 may initialize and verify locked package versions only after explicit development authorization. Do not treat planning-machine tools as project evidence.
+The repository remains documentation-only and has no application package manifest, lockfile, installed dependency, migration, or runtime evidence. T-2 accepted the planning baseline recorded in ADR-001: Node.js 24 LTS major, Next.js App Router, PostgreSQL, Drizzle, Better Auth, and separate web/worker processes from one modular-monolith codebase. ADR-002 through ADR-004 fix tenant enforcement, durable outbox/reconciliation, exact-IDR money, and concurrency policy. T-1 must still install compatible exact versions, commit the lockfile, and prove runtime commands after explicit development authorization. Production hosting vendor/region is not accepted until SEC-14/PRIV-11 gates close.
 
 | Contract area | Required safe evidence | Unresolved behavior |
 |---|---|---|
@@ -103,8 +103,16 @@ No provider call has been executed by this documentation work. Documentation alo
 
 ## 8. Verification Plan
 
-- Automated transition, idempotency, tenant/branch authorization, and provider-adapter contract tests.
+- Follow `14-TEST-STRATEGY.md`; automated transition, concurrency, idempotency, tenant/branch authorization, redaction, and provider-adapter contract tests are mandatory.
 - Browser scenarios in `17-UX-FLOWS-SCREEN-CONTRACTS.md` at desktop/tablet widths.
 - Sanitized sandbox estimate smoke test before asserting current provider contract.
 - Fault tests for timeout, duplicated response, out-of-order status, printed-label cancellation, and branch-switch stale state.
 - Audit/redaction checks for every sensitive action.
+
+
+## 9. Architecture Decision References
+
+- `../adr/ADR-001-RUNTIME-DEPLOYMENT-PROFILE.md` — runtime/deployment baseline.
+- `../adr/ADR-002-TENANT-DATABASE-ENFORCEMENT.md` — application + database tenant enforcement; RLS not primary MVP boundary.
+- `../adr/ADR-003-OUTBOX-RECONCILIATION.md` — durable provider dispatch/reconciliation.
+- `../adr/ADR-004-MONEY-CONCURRENCY.md` — integer-IDR money and optimistic concurrency.
