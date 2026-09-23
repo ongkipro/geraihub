@@ -64,7 +64,7 @@ Owner labels identify accountable roles, not proof that people have been appoint
 | Artifact | Decision | Owner | Reason and remaining gate |
 |---|---|---|---|
 | PRD | Selected | GeraiHub product owner | Product scope and permanent decision IDs |
-| Technical design / architecture | Selected | Engineering owner | Monolith, trusted provider/worker boundary; stack remains a recommendation |
+| Technical design / architecture | Selected | Engineering owner | Modular monolith and trusted provider/worker boundary; runtime baseline accepted in ADR-001, exact installed compatibility remains T-1 evidence |
 | Data model / tenant isolation / IAM | Selected | Engineering owner | Identity, ownership, lifecycle, and branch authorization |
 | Internal API contract | Selected | Engineering owner | 09-API-SPECIFICATION.md defines internal operations; machine-readable HTTP contract remains blocked until boundary selection |
 | Design system / UX | Selected | Design owner | Counter workflow and browser acceptance; no tenant white-label |
@@ -73,7 +73,11 @@ Owner labels identify accountable roles, not proof that people have been appoint
 | Observability | Selected | Operations owner | Audit/redaction, limits, reconciliation, alerting |
 | BRD | Omitted | GeraiHub product owner | No distinct commercial study requested |
 | Custom domain / public API | Omitted | GeraiHub product owner | No MVP tenant domains or public customer API |
-| Dedicated SLA/DRP / delivery documents | Deferred, not deemed unnecessary for production | Operations owner | Hosting, recovery targets and release mechanism unresolved; T-19 must define rollback/restore/runbook evidence before release |
+| Operations/release-readiness contract | Selected | Operations owner | `15-OPERATIONS-RELEASE-READINESS.md` fixes environment/deploy/restore/rollback/runbook requirements; provider-specific targets/evidence remain T-17 through T-20 gates |
+
+### Repository hardening — 2026-09-23
+
+The canonical repository now owns its structural validator at `scripts/check-repository.py`, CI runs it from `.github/workflows/spec-validation.yml`, ADRs own concrete architecture choices, and dedicated state/concurrency, testing, operations/release, and error contracts remove previously implicit implementation choices. These additions remain planning evidence until merged and executed by CI; application runtime evidence still does not exist.
 
 ## Jurisdiction, Sector, and Transfers
 
@@ -115,12 +119,12 @@ An independent Python-stdlib audit also passed at staging time: consistent Markd
 
 Material corrections: formal requirement ownership; one jurisdiction register and preserved supersession; explicit IAM/TEN/API/UX ownership; bullet task metadata; dedicated payment-correction and profit-report tasks; removal of staff user-management/admin self-promotion contradictions; accepted payment/expiry/auth policies distinguished from provider/operational gates; provenance dates no longer claimed verified. Core product requirements remain unchanged. Conservative owner-counter and support-mutation permissions plus exceptional self-correction defaults still require policy review before implementation.
 
-A structurally valid pack is not an accepted stack, a current provider contract, a validated UI, or permission to begin development.
+A structurally valid pack and accepted planning stack are not installed-runtime evidence, a current provider contract, a validated UI, or permission to begin development.
 
 - [ ] Explicit development authorization and accepted task scope.
-- [ ] Runtime/deployment profile accepted under T-2 before source-code initialization; locked packages verified afterward under T-1.
+- [x] Runtime/deployment planning baseline accepted under T-2 / ADR-001; exact locked-package/runtime compatibility remains T-1 evidence.
 - [ ] Current Mengantar contracts and separately authorized sanitized sandbox proof.
-- [ ] Account recovery, invitation identity policy, JIT approver, QRIS SOP, and correction exception policy approved.
+- [x] Account recovery/invitation identity policy, JIT approval policy, QRIS verification baseline, and no-self-correction MVP policy recorded in canonical specs.
 - [ ] Estimated-profit formula and provider pickup/account mapping verified.
 - [ ] Privacy/legal roles, notices, retention, vendor/regions, and transfer decisions approved before production.
 - [ ] Actual specialist approvers appointed; release, backup/restore, and incident responsibilities assigned.
