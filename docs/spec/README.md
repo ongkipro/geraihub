@@ -27,7 +27,7 @@ Read these first when handing the project to a developer or coding agent.
 | [`08-STATE-CONCURRENCY-CONTRACT.md`](08-STATE-CONCURRENCY-CONTRACT.md) | Canonical shipment state transitions, forbidden transitions, ordering, and concurrency contract | Engineering owner |
 | [`09-API-SPECIFICATION.md`](09-API-SPECIFICATION.md) | Framework-neutral internal operation contract and async-provider boundary | Engineering owner |
 | [`10-DESIGN-SYSTEM-WHITELABEL.md`](10-DESIGN-SYSTEM-WHITELABEL.md) | UI requirements, accessibility, responsive contract, and explicit no-white-label scope | Design owner |
-| [`11-BILLING-PAYMENTS.md`](11-BILLING-PAYMENTS.md) | Counter payment records, corrections, provider-finance authority, and estimated-profit policy | Finance owner |
+| [`11-BILLING-PAYMENTS.md`](11-BILLING-PAYMENTS.md) | Invoice issuance, manual-payment boundary, provider-finance authority, and estimated-profit policy | Finance owner |
 | [`12-SECURITY-ARCHITECTURE.md`](12-SECURITY-ARCHITECTURE.md) | Threats, security controls, secrets, recovery, and security verification | Security owner |
 | [`13-COMPLIANCE-PRIVACY.md`](13-COMPLIANCE-PRIVACY.md) | Applicability candidates, personal-data controls, rights, retention, vendors, and transfers | Privacy owner |
 | [`14-TEST-STRATEGY.md`](14-TEST-STRATEGY.md) | Test layers, negative matrices, deterministic fixtures, resilience, and evidence requirements | Engineering owner |
@@ -49,6 +49,7 @@ Run the repository-owned validator from the repository root:
 
 ```bash
 python3 scripts/check-repository.py .
+python3 scripts/test-check-repository.py
 ```
 
-The same command runs in GitHub Actions. It verifies required canonical files, local Markdown links, spec/ADR indexing, task dependency references, task graph acyclicity, and removal of machine-local validator dependencies. It is structural evidence only; it does not prove runtime/provider/legal behavior.
+GitHub Actions is configured to run both commands. The repository checker verifies required canonical files, local Markdown links, spec/ADR indexing, declared numeric requirement/ADR/task references and owners, task metadata and primary requirements, dependency graph acyclicity, screen/action references and task ownership, and removal of machine-local validator dependencies. The second command tests the checker using disposable valid and deliberately invalid document copies. These checks do not prove semantic completeness, runtime/provider/legal behavior, or actual approval of open gates.

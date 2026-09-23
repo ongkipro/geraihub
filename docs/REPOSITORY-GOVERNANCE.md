@@ -12,7 +12,7 @@ Required GitHub branch/ruleset controls:
 - require conversation resolution;
 - require at least one approving review once more than one independent maintainer exists.
 
-As observed on 2026-09-23, GitHub reports `main` as unprotected and no repository ruleset is active. T-23 is the canonical administration gate for enabling and verifying these controls; documentation does not pretend they are already active.
+On 2026-09-23, GitHub branch protection API reported `main` protected: PRs are required, the strict GitHub Actions `validate` check is required, conversations must be resolved, administrators are covered, and force pushes/deletion are disabled. The baseline `validate` check passed on `fe5742f`. The repository has one maintainer, so required approvals are zero; raise this to at least one independent approval when another maintainer is appointed. Recheck remote configuration before treating this observation as current.
 
 ## Ownership
 

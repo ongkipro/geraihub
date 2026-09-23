@@ -21,7 +21,7 @@
 | Sender/recipient identity, phone, address, shipment detail | Confidentiality and accurate branch-scoped processing | Browser ↔ backend ↔ database/Mengantar |
 | Google OAuth identity and GeraiHub session | Prevent login CSRF, account link takeover, session theft, and stale privilege | Browser ↔ OAuth callback ↔ auth/session store |
 | GeraiHub membership, role, active branch, and JIT grant | Prevent cross-tenant/object access and privilege escalation | Backend authorization ↔ database ↔ worker |
-| Payment record, quote, provider order/resi, cancellation state | Prevent alteration, duplicate provider orders, and false completion | Transaction/outbox ↔ Mengantar adapter ↔ reconciliation worker |
+| Invoice, quote, provider order/resi, cancellation state | Prevent alteration, duplicate provider orders, and false completion | Transaction/outbox ↔ Mengantar adapter ↔ reconciliation worker |
 | Mengantar and OAuth client secrets | Never expose to browser/logs/repository | Approved server-side secret store ↔ workload only |
 | Audit, reconciliation, backups | Prevent unauthorized read/alteration and support recovery | Restricted operational access |
 
@@ -41,7 +41,7 @@ Authoritative boundaries: Google proves an external identity; GeraiHub decides a
 | SEC-8 | Security owner | Mengantar credentials, credential-bearing URLs, OAuth secrets, sessions, raw provider payloads, and full PII MUST NOT appear in browser bundles, logs, audits, fixtures, or documentation. | Secret/logging/build review | Static scan and redaction test |
 | SEC-9 | Security owner | Provider-facing outbound requests MUST be limited to the verified Mengantar base URL/operations, with explicit timeout, response-size, and redirect policy. | Adapter HTTP client | Host/redirect configuration test |
 | SEC-10 | Security owner | Privileged support access MUST be default-deny, branch-bound, reasoned, approved, time-limited, visibly indicated, immediately revocable, and audit every access/action. | JIT grant policy | Expiry/revocation/access audit test |
-| SEC-11 | Security owner | Sensitive history (payment records, quote confirmations, provider sync, cancellation, role changes, prints) MUST be append-only/audited; ordinary staff cannot delete or rewrite it. | Database and application transition guards | Mutation authorization/history test |
+| SEC-11 | Security owner | Sensitive history (issued invoices, quote confirmations, provider sync, cancellation, role changes, prints) MUST be append-only/audited; ordinary staff cannot delete or rewrite it. | Database and application transition guards | Mutation authorization/history test |
 | SEC-12 | Security owner | Rate/concurrency limits MUST protect login, lookup, estimate, submit/cancel, print, and export using shared persistent storage when deployed on more than one instance. | Auth/app limiter and queue | Bounded abuse/limit test |
 | SEC-13 | Security owner | Production transport MUST use HTTPS; response headers must restrict framing, content type sniffing, referrer leakage, and browser capabilities proportionately. CSP/CORS rules must be explicit allowlists. | Deployment/app headers | Browser/header verification |
 | SEC-14 | Security owner | Backups and operational access MUST be restricted, encrypted by the chosen managed platform, tested by a restore exercise before production, and subject to the privacy retention schedule. | Infrastructure/runbook | Restore evidence without production PII |

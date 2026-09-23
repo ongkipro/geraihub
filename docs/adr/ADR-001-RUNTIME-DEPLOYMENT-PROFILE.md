@@ -1,5 +1,7 @@
 # ADR-001 — Runtime and Deployment Profile
 
+## ADR-001 — Decision record
+
 - Status: Accepted baseline
 - Date: 2026-09-23
 - Owner: Engineering owner

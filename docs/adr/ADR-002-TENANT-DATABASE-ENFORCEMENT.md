@@ -1,5 +1,7 @@
 # ADR-002 — Tenant and Database Enforcement
 
+## ADR-002 — Decision record
+
 - Status: Accepted
 - Date: 2026-09-23
 - Owner: Security owner
@@ -25,7 +27,7 @@ RLS can be useful defense in depth, but relying on connection-scoped tenant sess
 
 - Branch belongs to exactly one organization.
 - Shipment branch/organization ownership is immutable after creation.
-- Provider mapping, payment, quote, cancellation, reconciliation, and audit records cannot point to a different branch than their shipment.
+- Provider mapping, invoice, quote, cancellation, reconciliation, and audit records cannot point to a different branch than their shipment.
 - No resource is reassigned to another branch as an error-recovery mechanism.
 - Retired IDs are never reused.
 

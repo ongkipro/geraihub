@@ -27,3 +27,6 @@ jobs:
 
       - name: Validate canonical repository contracts
         run: python3 scripts/check-repository.py .
+
+      - name: Test specification validator regressions
+        run: python3 scripts/test-check-repository.py

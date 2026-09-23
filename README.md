@@ -38,8 +38,8 @@ This repository currently contains **planning and specification documents only**
 - Google OAuth authenticates an external identity; GeraiHub owns users, memberships, roles, active-branch authorization, sessions, and audit records.
 - Branch/gerai is the operational isolation boundary for shipment mutations.
 - Mengantar remains authoritative for provider shipment finance and settlement.
-- MVP counter payment records cover cash and branch QRIS only.
-- Payment corrections require an admin request and owner decision; customer refunds occur outside GeraiHub and are recorded as audited evidence.
+- Customer payment is handled manually by each gerai outside GeraiHub. The application issues an invoice for the confirmed charge and a Mengantar-confirmed resi, without recording payment status or method.
+- Issued invoices are immutable; any replacement after issuance needs an approved Finance/Product policy. The deferred customer draft-reference QR code is unrelated to payment.
 - Estimated profit appears only after verified Mengantar pickup evidence and remains non-authoritative.
 - Customer pre-fill, QR/reference lookup, and WhatsApp are post-MVP.
 - Provider ambiguity is never converted into blind duplicate submit/cancel.
@@ -66,7 +66,7 @@ task-specific domain specs
 
 ## Validation boundary
 
-Structural validation proves document identifiers, owners, task references, links, and traceability structure are internally consistent. It does **not** prove:
+Structural validation checks declared numeric requirement/ADR/task IDs and their references, declaration owners, task metadata/primary requirements, dependency cycles, local links, document indexing, and screen/action references and task ownership. It does **not** prove semantic completeness or that task acceptance criteria cover every requirement. It also does not prove:
 
 - current Mengantar endpoint behavior;
 - installed package/runtime compatibility or working application behavior;
@@ -79,6 +79,7 @@ Validate the current documentation repository with:
 
 ```bash
 python3 scripts/check-repository.py .
+python3 scripts/test-check-repository.py
 ```
 
 No application install, build, provider request, or deployment command applies until development is explicitly authorized.

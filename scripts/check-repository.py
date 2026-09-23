@@ -20,6 +20,10 @@ REQUIRED = [
     "docs/REPOSITORY-GOVERNANCE.md",
     ".github/workflows/spec-validation.yml",
     "docs/spec/README.md",
+    "docs/spec/HANDOFF.md",
+    "docs/spec/GLOSSARY.md",
+    "docs/spec/TRACEABILITY.md",
+    "docs/spec/DECISION-GATES.md",
     "docs/spec/02-PRD.md",
     "docs/spec/03-TECHNICAL-DESIGN.md",
     "docs/spec/04-SYSTEM-ARCHITECTURE.md",
@@ -39,6 +43,10 @@ REQUIRED = [
     "docs/spec/18-ERROR-AND-RESULT-CONTRACT.md",
     "docs/spec/CONTEXT-RECORD.md",
     "docs/adr/README.md",
+    "docs/adr/ADR-001-RUNTIME-DEPLOYMENT-PROFILE.md",
+    "docs/adr/ADR-002-TENANT-DATABASE-ENFORCEMENT.md",
+    "docs/adr/ADR-003-OUTBOX-RECONCILIATION.md",
+    "docs/adr/ADR-004-MONEY-CONCURRENCY.md",
     "docs/adr/ADR-005-SESSION-ACTIVE-BRANCH-CONTEXT.md",
 ]
 
@@ -82,13 +90,72 @@ if adr_dir.is_dir() and (adr_dir / "README.md").is_file():
         if f"({p.name})" not in index:
             errors.append(f"ADR index missing: {p.name}")
 
-# Parse task declarations/dependencies and prove the graph is acyclic.
+# Keep reference tables as links; only plain IDs declare canonical requirements.
+id_pattern = r"(?:PR|NFR|TD|ADR|ARCH|DATA|TEN|IAM|API|UI|UX|BILL|SEC|PRIV|OBS|RATE|CTX|OVR|JUR|XFER|LOC|TEST|EVID)(?:-[A-Z0-9]+)*-\d+|T-\d+"
+id_re = re.compile(rf"\b(?:{id_pattern})\b")
+heading_re = re.compile(rf"^#{{2,6}}\s+({id_pattern})\b")
+declarations: dict[str, list[tuple[str, dict[str, str]]]] = defaultdict(list)
+references: list[tuple[str, str]] = []
+
+for path in sorted(ROOT.rglob("*.md")):
+    lines = path.read_text(encoding="utf-8").splitlines()
+    visible: list[str] = []
+    fence = None
+    for line in lines:
+        marker = re.match(r"^\s*(`{3,}|~{3,})", line)
+        if marker:
+            token = marker.group(1)
+            if fence is None:
+                fence = token
+            elif token[0] == fence[0] and len(token) >= len(fence):
+                fence = None
+            visible.append("")
+        else:
+            visible.append(line if fence is None else "")
+
+    headers: list[str] = []
+    for index, line in enumerate(visible):
+        location = f"{path.relative_to(ROOT)}:{index + 1}"
+        references.extend((identifier, location) for identifier in id_re.findall(line))
+        heading = heading_re.match(line)
+        if heading:
+            metadata: dict[str, str] = {}
+            for following in visible[index + 1:]:
+                if re.match(r"^#{1,6}\s", following):
+                    break
+                field = re.match(r"^- ([^:]+):\s*(.+)$", following)
+                if field:
+                    metadata.setdefault(field.group(1).strip().lower(), field.group(2).strip())
+            declarations[heading.group(1)].append((location, metadata))
+        if not line.startswith("|"):
+            headers = []
+            continue
+        cells = [cell.strip().strip("`") for cell in re.split(r"(?<!\\)\|", line.strip().strip("|"))]
+        if not headers:
+            headers = [cell.lower() for cell in cells]
+        elif id_re.fullmatch(cells[0]):
+            declarations[cells[0]].append((location, dict(zip(headers, cells))))
+
+for identifier, entries in declarations.items():
+    if len(entries) != 1:
+        errors.append(f"duplicate declaration: {identifier} at {', '.join(location for location, _ in entries)}")
+    for location, metadata in entries:
+        if not any(value.strip() for key, value in metadata.items() if key == "owner" or key.endswith(" owner")):
+            errors.append(f"missing accountable owner: {identifier} at {location}")
+
+for identifier, location in references:
+    if identifier not in declarations:
+        errors.append(f"unresolved requirement/task reference: {identifier} at {location}")
+
+# Parse task metadata/dependencies and prove the graph is acyclic.
 tasks_path = ROOT / "TASKS.md"
 if tasks_path.is_file():
     text = tasks_path.read_text(encoding="utf-8")
     task_decl_re = re.compile(r"^###\s+(T-\d+)\s+—\s+(.+)$", re.M)
     matches = list(task_decl_re.finditer(text))
     ids = [m.group(1) for m in matches]
+    if not ids:
+        errors.append("TASKS.md has no task declarations")
     duplicates = sorted({x for x in ids if ids.count(x) > 1})
     if duplicates:
         errors.append("duplicate task IDs: " + ", ".join(duplicates))
@@ -99,12 +166,22 @@ if tasks_path.is_file():
         tid = match.group(1)
         end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
         block = text[match.end():end]
-        dep_match = re.search(r"^- Dependencies:\s*(.+)$", block, re.M)
+        for field in ["Status", "Owner", "Constraints", "Done when"]:
+            if not re.search(rf"^- {field}:[ \t]*\S.*$", block, re.M):
+                errors.append(f"{tid} missing {field} metadata")
+        primaries = re.findall(r"^- Primary requirement:[ \t]*(.+)$", block, re.M)
+        if len(primaries) != 1 or not re.fullmatch(r"(?:PR|TD)-\d+", primaries[0].strip()):
+            errors.append(f"{tid} must have exactly one PR/TD primary requirement")
+        elif primaries[0].strip() not in declarations:
+            errors.append(f"{tid} references undeclared primary requirement {primaries[0].strip()}")
+        dep_match = re.search(r"^- Dependencies:[ \t]*(.+)$", block, re.M)
         if not dep_match:
             errors.append(f"{tid} missing Dependencies metadata")
             continue
         raw = dep_match.group(1).strip()
         if raw.lower() != "none":
+            if not re.fullmatch(r"T-\d+(?:,\s*T-\d+)*", raw):
+                errors.append(f"{tid} has malformed Dependencies metadata")
             for dep in re.findall(r"T-\d+", raw):
                 if dep not in task_set:
                     errors.append(f"{tid} references unknown dependency {dep}")
@@ -129,6 +206,35 @@ if tasks_path.is_file():
 
     if visited != len(deps):
         errors.append("task dependency graph contains a cycle")
+
+ux_path = ROOT / "docs/spec/17-UX-FLOWS-SCREEN-CONTRACTS.md"
+if ux_path.is_file():
+    # Screen/action families are navigation contracts, not requirement declarations.
+    surface_re = re.compile(r"\b(?:S|A)-\d{2}\b")
+    surface_rows: dict[str, list[int]] = defaultdict(list)
+    for number, line in enumerate(ux_path.read_text(encoding="utf-8").splitlines(), 1):
+        match = re.match(r"^\| ((?:S|A)-\d{2})\b", line)
+        if not match:
+            continue
+        identifier = match.group(1)
+        surface_rows[identifier].append(number)
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        expected_count = 5 if identifier.startswith("S-") else 4
+        if len(cells) != expected_count or not all(cells):
+            errors.append(f"incomplete screen/action row: {identifier} at UX:{number}")
+            continue
+        owner_cell = cells[3] if identifier.startswith("S-") else cells[2]
+        if not re.search(r"\bT-\d+\b", owner_cell):
+            errors.append(f"screen/action lacks task owner: {identifier} at UX:{number}")
+        if identifier.startswith("A-") and not re.search(r"\bS-\d{2}\b", cells[1]):
+            errors.append(f"action lacks screen path: {identifier} at UX:{number}")
+    for identifier, rows in surface_rows.items():
+        if len(rows) != 1:
+            errors.append(f"duplicate screen/action: {identifier} at UX:{rows}")
+    for path in sorted(ROOT.rglob("*.md")):
+        for identifier in sorted(set(surface_re.findall(path.read_text(encoding="utf-8")))):
+            if identifier not in surface_rows:
+                errors.append(f"unresolved screen/action reference: {identifier} at {path.relative_to(ROOT)}")
 
 # Reusable GitHub Actions must be pinned to immutable commit SHAs.
 workflow_dir = ROOT / ".github/workflows"

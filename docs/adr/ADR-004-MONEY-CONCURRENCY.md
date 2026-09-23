@@ -1,5 +1,7 @@
 # ADR-004 — Exact Money and Concurrency
 
+## ADR-004 — Decision record
+
 - Status: Accepted
 - Date: 2026-09-23
 - Owner: Engineering owner
@@ -30,10 +32,10 @@ Zero affected rows means stale/conflicting state and must not be silently retrie
 ## Operations requiring version/conflict protection
 
 - shipment draft/verification/quote confirmation;
-- direct payment recording;
+- invoice issuance and reprint identity;
 - submit intent;
 - cancellation request;
-- payment correction request and decision;
+- quote reconfirmation before submit and invoice source-version checks;
 - membership/branch lifecycle changes where stale approval matters;
 - provider reconciliation applying an outcome to an aggregate.
 
@@ -41,4 +43,4 @@ Database uniqueness/locking remains required for invariants that optimistic vers
 
 ## Verification
 
-Tests must execute real concurrent transactions for duplicate payment, duplicate submit intent, simultaneous correction decisions, invitation acceptance, and provider-result application. Exactly one valid winner is accepted where the contract requires singularity; losers receive a stable conflict result with no duplicate side effect.
+Tests must execute real concurrent transactions for duplicate invoice issuance, duplicate submit intent, quote reconfirmation versus submit, invitation acceptance, and provider-result application. Exactly one valid winner is accepted where the contract requires singularity; losers receive a stable conflict result with no duplicate side effect.

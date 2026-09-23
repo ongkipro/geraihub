@@ -38,8 +38,8 @@ A stale implementation that violates an accepted requirement is a defect, not a 
 - Google authenticates identity; GeraiHub owns application access, membership, role, session/context, and audit.
 - Mengantar is server-only and remains authoritative for provider shipment/finance facts explicitly assigned to it.
 - Provider timeout/ambiguity is never converted into blind duplicate submit/cancel.
-- Payment evidence is append-only; correction is governed and auditable.
-- Cancellation is not refund.
+- Customer payment and any refund are manual gerai processes outside GeraiHub; the app stores neither payment state nor receipt.
+- Invoice issuance follows confirmed Mengantar resi and quote; reprint preserves the original document.
 - Print/reprint is not order submission.
 - Estimated profit is not authoritative accounting profit and requires verified pickup plus approved formula.
 - Super-admin has no routine tenant shipment operation; bounded JIT is explicit.
@@ -56,7 +56,10 @@ For an implementation task:
 4. write or update executable tests for the acceptance contract;
 5. implement only within the authorized scope;
 6. collect actual evidence;
-7. report PASS/FAIL/BLOCKED accurately.
+7. review the changed diff and affected browser/runtime flow, resolve findings, and rerun affected checks;
+8. report PASS/FAIL/BLOCKED accurately and reopen stale task evidence when later changes invalidate it.
+
+The root `TASKS.md` owns the closed review loop and remains the only execution queue. Dotfiles skills and local helpers may guide specialist work, but the repository must retain runnable commands and evidence so the result does not depend on one machine's tools.
 
 Do not create a second backlog, hidden requirements list, or competing state machine.
 
@@ -124,5 +127,8 @@ A new developer/agent should be able to answer, from repository docs alone:
 - When may estimated profit appear?
 - Which unknowns are still blocked rather than assumed?
 - Which task is next and what evidence closes it?
+- Which workspace does each role enter, and how do logout, stale context and JIT exit recover safely?
+- Which provider account/version owns an operation, and how does a never-dispatched expired quote return to review?
+- Which screen/action family and concrete control test prove the changed journey, including failure paths?
 
 If the documentation cannot answer one of these questions, improve the owning document instead of adding an undocumented implementation assumption.

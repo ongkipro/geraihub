@@ -1,6 +1,6 @@
 # Security Policy
 
-GeraiHub handles shipment/customer data and external provider credentials. Security defects involving tenant isolation, authentication, authorization, payment records, provider dispatch, secrets, or personal-data exposure are treated as sensitive.
+GeraiHub handles shipment/customer data, invoices, and external provider credentials. Security defects involving tenant isolation, authentication, authorization, invoice history, provider dispatch, secrets, or personal-data exposure are treated as sensitive.
 
 ## Reporting
 
@@ -16,9 +16,9 @@ Highest-priority classes include:
 - authentication/account-link/session bypass;
 - privilege escalation or JIT-support bypass;
 - duplicate/unauthorized provider order or cancellation;
-- payment/audit history alteration;
+- invoice/audit history alteration;
 - secret/session/PII exposure;
 - SSRF or uncontrolled provider egress;
 - unsafe migration/backup/restore behavior that can corrupt tenant history.
 
-Use synthetic data for reproduction whenever possible. Never create a production shipment, cancellation, refund, or provider mutation merely to demonstrate a vulnerability.
+Use synthetic data for reproduction whenever possible. Never create a production shipment, invoice, cancellation, or provider mutation merely to demonstrate a vulnerability.

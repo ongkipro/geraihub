@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Accepted isolation contract; runtime verification pending |
-| Version / updated | 0.2 / 2026-09-23 |
+| Version / updated | 0.3 / 2026-09-24 |
 | Accountable owner | Security owner |
 | Decision | An owner organization can operate multiple gerai branches; each operational request has exactly one active branch context. |
 | Authority | Canonical repository specification; promoted from the retained planning snapshot on 2026-09-23 |
@@ -13,7 +13,7 @@
 ## 1. Boundary Model
 
 - **Organization** is the business ownership boundary. One owner may control one or more branches.
-- **Gerai branch** is the operational and data-access boundary for physical package handling, direct payment records, printer use, pickup, shipment search, cancellation, and customer information.
+- **Gerai branch** is the operational and data-access boundary for physical package handling, invoice/resi issuance, printer use, pickup, shipment search, cancellation, and customer information.
 - A user has one identity and one or more memberships. Membership role is scoped to an organization or a branch according to IAM.
 - A user is never duplicated merely because they are assigned to another branch.
 - A branch is not chosen from a browser-provided `gerai_id`; the backend resolves it from a selected context plus verified membership.
@@ -21,7 +21,7 @@
 | ID | Owner | Requirement | Enforcement | Evidence |
 |---|---|---|---|---|
 | TEN-1 | Security owner | Every operational shipment request MUST resolve exactly one authorized active branch before data access or mutation. | Server authorization/request context | Cross-branch tamper test |
-| TEN-2 | Security owner | Shipment, draft, direct-payment record, print, provider mapping, audit event, reconciliation item, and internal-finance estimate MUST be owned by one immutable branch. | Database key/foreign key + scoped query policy | Schema/integration test |
+| TEN-2 | Security owner | Shipment, draft, invoice, print, provider mapping, audit event, reconciliation item, and internal-finance estimate MUST be owned by one immutable branch. | Database key/foreign key + scoped query policy | Schema/integration test |
 | TEN-3 | Security owner | Organization aggregate reporting MAY span its authorized branches, but cannot expose a cross-branch operational queue or authorize a cross-branch shipment mutation. | Separate aggregate read model + action policy | UI/API authorization test |
 | TEN-4 | Security owner | A short customer draft reference or QR MUST resolve only after branch context and a qualified lookup path are authorized; it must not become an enumeration endpoint. | Opaque reference, scoped lookup, rate limit, minimized pre-verification result | Abuse/IDOR test |
 | TEN-5 | Security owner | Platform staff have no routine branch shipment access; support access is explicit, tenant/branch-bound, expiring, and audited. | JIT policy | Support access test |
@@ -39,9 +39,10 @@
 
 | Entry point | Authoritative branch resolution | Failure behavior |
 |---|---|---|
-| Web operator request | Authenticated membership + selected active branch stored/validated server-side | Deny when missing, disabled, stale, or unauthorized |
+| Web operator mutation | Authenticated membership + selected active branch stored/validated server-side | Deny when missing, disabled, stale, or unauthorized |
+| Suspended/retired branch history read | Freshly selected server-owned read-only branch context + current read permission | Deny mutations and revoked memberships; never reuse the former operational context |
 | Branch switch | User selects from their authorized memberships only | Refresh authorization context; no silent fallback to previous/default branch |
-| Shipment route/search/reference | Active authorized branch plus scoped resource lookup | Return not found/deny without another branch metadata |
+| Shipment, contact, and pickup-point route/search/reference | Active authorized branch plus scoped resource lookup | Return not found/deny without another branch metadata; contact and pickup IDs never select another branch |
 | Background provider sync/job | Persisted shipment branch ownership, revalidated by worker | Quarantine mismatch; never reassign automatically |
 | Platform aggregate view | Organization/platform policy and explicit aggregate query | Read aggregate only; branch detail/action requires JIT/selected branch policy |
 
@@ -69,11 +70,15 @@ Rules:
 | Transition | Authority | Operational effect | Data/access effect | Audit |
 |---|---|---|---|---|
 | Create branch | Organization owner requests; platform super admin approves activation | No shipment activity until provider-account, pickup, and readiness checks pass | Create draft branch; assign admin(s); no user duplication | Request, approval/rejection, and membership event |
-| Active → suspended | Owner/platform policy | New shipment/payment/submit/print/cancel actions blocked; existing records readable by permitted roles | Revoke active branch context and scoped sessions | Reason/actor/time |
-| Suspended → active | Authorized owner/platform policy | Resume only after configuration/integration readiness checks | Restore membership eligibility | Activation event |
+| Active → suspended | Owner/platform policy | New shipment/submit/invoice/print/cancel actions blocked; existing records readable by permitted roles | Invalidate operational context/version; retain identity login and read memberships unless independently revoked | Reason/actor/time |
+| Suspended → active | Owner requests reactivation; platform super admin approves under IAM activation permission | Resume only after configuration/integration readiness checks; an owner cannot undo platform suspension directly | Restore eligibility only for memberships still active; do not resurrect revoked grants | Request and activation event |
 | Retire branch | Approved owner/platform process | No new operational mutations; historical records retained | Retain branch ID/ownership for audit and privacy lifecycle | Retire reason/evidence |
 
 Whether a branch has one or multiple printer/pickup-address configurations is an implementation/configuration decision; branch ownership remains unchanged.
+
+Suspension changes action eligibility, not record ownership. After invalidation, an authorized user may explicitly select that branch in read-only history mode. The server derives this mode from branch lifecycle and current membership, persists the context/version, and allows only scoped historical reads. It never accepts a client-provided read-only flag as authority. UI shows the suspended/retired state; invoice/resi issuance, print, export, correction, cancellation, submit, and configuration mutations remain denied. Branch lifecycle administration uses its separate owner/platform permission, not the history context. Revoked users/memberships receive no historical access.
+
+Workers stop new side-effect dispatch on suspended/retired branches. Already dispatched or ambiguous operations retain their correlation and may receive verified read-only reconciliation results, preserving history without initiating another create/cancel. Invalidation races must be tested: a request committed before suspension may already have caused a provider side effect; suspension never pretends to undo it.
 
 ## 5. Required Isolation Tests
 

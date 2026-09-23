@@ -1,5 +1,7 @@
 # ADR-005 — Session and Active-Branch Context
 
+## ADR-005 — Decision record
+
 - Status: Accepted
 - Date: 2026-09-23
 - Owner: Security owner

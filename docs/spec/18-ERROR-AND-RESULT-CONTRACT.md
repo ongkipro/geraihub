@@ -38,10 +38,11 @@ HTTP status mapping is finalized with the implemented route schemas/OpenAPI.
 | SHIPMENT_INVALID_STATE | Requested shipment action is not allowed from current state. |
 | QUOTE_REQUIRED | Valid current estimate/quote is missing. |
 | QUOTE_STALE | Material data changed or quote freshness is invalid; requote. |
+| COD_MODE_UNAVAILABLE | The selected courier/service cannot support the requested COD mode under the verified contract; choose an eligible mode/service. |
+| SHIPPING_ALLOCATION_REQUIRED | COD produk excludes shipping but sender-at-gerai shipping allocation was not confirmed; review before submit. |
 | VERIFICATION_REQUIRED | Physical verification is incomplete. |
-| PAYMENT_REQUIRED | Valid direct-payment evidence is absent. |
-| PAYMENT_ALREADY_RECORDED | A valid append-only payment already exists. |
-| CORRECTION_PENDING | A correction request already exists for the relevant version. |
+| INVOICE_NOT_AVAILABLE | Confirmed provider resi or submit-time quote is absent, or a cancelled shipment has no existing invoice; wait for reconciliation or recheck source. |
+| INVOICE_ALREADY_ISSUED | An invoice already exists for the shipment; return the same document for authorized reprint. |
 | PROVIDER_PENDING | Durable provider work is still pending. |
 | PROVIDER_UNKNOWN | Outcome may have reached provider; do not repeat blindly. |
 | PROVIDER_RECONCILIATION_REQUIRED | Manual/worker reconciliation is required before another provider side effect. |
