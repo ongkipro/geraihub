@@ -143,7 +143,7 @@ The cancellation unknown path means reconciliation of the same request, never se
 
 ## 7. Stack and Provider Evidence Gates
 
-The repository remains documentation-only and has no application package manifest, lockfile, installed dependency, migration, or runtime evidence. T-2 accepted the planning baseline recorded in ADR-001: Node.js 24 LTS major, pnpm, Next.js App Router, PostgreSQL, Drizzle, Better Auth, and separate web/worker processes from one modular-monolith codebase. ADR-002 through ADR-005 fix tenant enforcement, durable outbox/reconciliation, exact-IDR money/concurrency, and database-session/active-branch policy. T-1 must still install compatible exact versions, commit the lockfile, and prove runtime commands after explicit development authorization. Production hosting vendor/region is not accepted until SEC-14/PRIV-11 gates close.
+The development worktree now has a pinned package manifest/lockfile, a minimal web and worker, and locally executed migration/build/start checks. T-1 still requires a committed clean-checkout run before completion; generated auth schema and session behavior remain T-3/T-4 work. T-2's baseline in ADR-001 remains Node.js 24 LTS major, pnpm, Next.js App Router, PostgreSQL, Drizzle, Better Auth, and separate web/worker processes from one modular-monolith codebase. ADR-002 through ADR-005 fix tenant enforcement, durable outbox/reconciliation, exact-IDR money/concurrency, and database-session/active-branch policy. Production hosting vendor/region is not accepted until SEC-14/PRIV-11 gates close.
 
 | Contract area | Required safe evidence | Unresolved behavior |
 |---|---|---|
@@ -155,6 +155,20 @@ The repository remains documentation-only and has no application package manifes
 | Cancellation | Documented eligibility/state/financial effects and separately approved sandbox exercise | Request/status fields, terminal outcomes, ambiguous timeout and reversal behavior |
 | Account mapping | Provider/account-owner confirmation and approved branch configuration evidence | Account/pickup ownership, one-account-per-branch feasibility, wallet scope |
 | Finance snapshots | Current documented read capability plus authorized sanitized observation tied to provider account and shipment identifiers | Balance, COD/remittance/settlement, cost, discount/cashback availability; field authority, units/currency, pagination, freshness, historical correction and rate limits |
+
+### Public documentation review, 2026-09-24
+
+The [Mengantar Public API documentation](https://api-public.mengantar.com/docs/) was retrieved read-only on 2026-09-24. These are documented capabilities, not account entitlement or sandbox results:
+
+| Area | Documented observation | Still unverified for GeraiHub |
+|---|---|---|
+| Estimate | Account-keyed `GET /order/estimate` documents `origin_id`, `destination_id`, `courier`, `weight` in kg, optional `COD_AMOUNT`, and response fields including IDR pricing, `unsupported` and `unsupported_cod`. | Account-specific service/fee result, quote freshness, COD mode eligibility, and required origin/account mapping. |
+| Order and recovery | `POST /order` documents a pickup and orders array; `GET /order` documents paginated order reads. | Idempotency/correlation, order-without-resi reconciliation, retry semantics, actual account behavior, and authorization to perform sandbox mutations. |
+| Label | Asynchronous label-generation PDF endpoints are marked beta, require a paid order with tracking, and are limited to whitelisted accounts with `labelGeneration` permission. | Whether the GeraiHub account is entitled, whether another approved label path exists, printable media/format and safe delivery. T-12 remains blocked until confirmed. |
+| Cancellation | The public document describes delete-order behavior for some couriers. | Whether this is the accepted cancellation path for each GeraiHub service/state, financial effects and timeout recovery. No generic cancellation adapter is authorized by this observation. |
+| Finance | `GET /invoices` documents account balance and invoice list pagination. | Shipment-level settlement, COD remittance, discount/cashback authority, freshness/revisions and complete data needed by T-15/T-22. |
+
+The documented `COD_AMOUNT` explanation uses goods value plus shipping fee; it does not establish that shipping-only COD or product COD excluding shipping is supported. Its sample `codFee` is not a verified 3.33% tariff, rounding rule, or payer/remittance contract. Keep both COD variants and final fee/payout claims disabled pending account-specific evidence. A separate GeraiCUAN repository has earlier integration code and sanitized fixtures, but its product policy and observed account scope are not GeraiHub authority. No `.env` contents or provider credentials were read, and no provider operation was called during this review.
 
 No provider call has been executed by this documentation work. Documentation alone is not runtime proof. No production shipment is created for validation; the minimum estimate smoke does not authorize order/cancel tests. Unavailable sandbox capabilities require a documented provider-supported validation path and explicit approval, not guessed fixtures presented as evidence. T-10 gates T-11 through T-15 where applicable.
 

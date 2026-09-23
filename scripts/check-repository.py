@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 from collections import defaultdict, deque
@@ -9,6 +10,22 @@ from pathlib import Path
 
 ROOT = Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
 errors: list[str] = []
+
+GENERATED_DIRS = {
+    ".git", ".next", ".turbo", ".venv", "build", "coverage", "dist",
+    "node_modules", "playwright-report", "test-results",
+}
+
+
+def project_markdown_files(root: Path) -> list[Path]:
+    paths: list[Path] = []
+    for directory, children, files in os.walk(root):
+        children[:] = [name for name in children if name not in GENERATED_DIRS]
+        paths.extend(Path(directory) / name for name in files if name.endswith(".md"))
+    return sorted(paths)
+
+
+markdown_files = project_markdown_files(ROOT)
 
 REQUIRED = [
     "README.md",
@@ -56,7 +73,7 @@ for rel in REQUIRED:
 
 # Validate local Markdown links.
 link_re = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
-for path in ROOT.rglob("*.md"):
+for path in markdown_files:
     text = path.read_text(encoding="utf-8")
     for target in link_re.findall(text):
         target = target.strip().split("#", 1)[0]
@@ -97,7 +114,7 @@ heading_re = re.compile(rf"^#{{2,6}}\s+({id_pattern})\b")
 declarations: dict[str, list[tuple[str, dict[str, str]]]] = defaultdict(list)
 references: list[tuple[str, str]] = []
 
-for path in sorted(ROOT.rglob("*.md")):
+for path in markdown_files:
     lines = path.read_text(encoding="utf-8").splitlines()
     visible: list[str] = []
     fence = None
@@ -231,7 +248,7 @@ if ux_path.is_file():
     for identifier, rows in surface_rows.items():
         if len(rows) != 1:
             errors.append(f"duplicate screen/action: {identifier} at UX:{rows}")
-    for path in sorted(ROOT.rglob("*.md")):
+    for path in markdown_files:
         for identifier in sorted(set(surface_re.findall(path.read_text(encoding="utf-8")))):
             if identifier not in surface_rows:
                 errors.append(f"unresolved screen/action reference: {identifier} at {path.relative_to(ROOT)}")
@@ -278,5 +295,5 @@ if errors:
 print(
     "PASS "
     f"required_files={len(REQUIRED)} "
-    f"markdown_files={len(list(ROOT.rglob('*.md')))}"
+    f"markdown_files={len(markdown_files)}"
 )

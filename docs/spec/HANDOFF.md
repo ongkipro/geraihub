@@ -16,6 +16,7 @@ It does not authorize implementation by itself.
 6. `DECISION-GATES.md` — unknowns that must not be guessed.
 7. `../adr/README.md` and referenced ADRs.
 8. Read the domain specifications required by the selected task.
+9. For source work, read `19-ENGINEERING-STANDARDS.md` and the proposed T-1 layout in `20-REPOSITORY-STRUCTURE.md`; verify actual paths against the repository before using them.
 
 Do not start from a single API/UI document in isolation.
 

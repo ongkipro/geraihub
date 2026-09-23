@@ -35,6 +35,8 @@ Read these first when handing the project to a developer or coding agent.
 | [`16-OBSERVABILITY-RATE-LIMITING.md`](16-OBSERVABILITY-RATE-LIMITING.md) | Audit/telemetry signals, alerting, redaction, quotas, and rate boundaries | Operations owner |
 | [`17-UX-FLOWS-SCREEN-CONTRACTS.md`](17-UX-FLOWS-SCREEN-CONTRACTS.md) | Journeys, screen states, role visibility, responsive behavior, and browser acceptance | Design owner |
 | [`18-ERROR-AND-RESULT-CONTRACT.md`](18-ERROR-AND-RESULT-CONTRACT.md) | Stable safe application error/result vocabulary and retry semantics | Engineering owner |
+| [`19-ENGINEERING-STANDARDS.md`](19-ENGINEERING-STANDARDS.md) | Source-level boundaries, trust/data handling, and coding evidence conventions | Engineering owner |
+| [`20-REPOSITORY-STRUCTURE.md`](20-REPOSITORY-STRUCTURE.md) | Observed T-1 source placement and proposed later module boundaries | Engineering owner |
 
 ## Authority and status
 
@@ -42,6 +44,7 @@ Read these first when handing the project to a developer or coding agent.
 - `~/Documents/work/prd/geraihub/` is a retained pre-promotion snapshot and must not be edited as the current source of truth.
 - The implementation stack baseline is accepted in `../adr/ADR-001-RUNTIME-DEPLOYMENT-PROFILE.md`; exact installed package compatibility remains T-1 runtime evidence. Provider behavior, legal conclusions, production controls, and release claims remain gated.
 - `HANDOFF.md`, `GLOSSARY.md`, `TRACEABILITY.md`, and `DECISION-GATES.md` are navigation/control documents. They do not override the owning requirement, ADR, or current runtime evidence.
+- The task-local workflow and review loop is owned by `../../TASKS.md`, with contribution rules in `../../CONTRIBUTING.md` and evidence criteria in `14-TEST-STRATEGY.md`; no parallel workflow specification is needed.
 
 ## Structural validation
 

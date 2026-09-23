@@ -9,6 +9,8 @@ GeraiHub is specification-first. Repository code, migrations, tests, and runtime
 3. Do not guess Mengantar behavior, legal obligations, provider limits, or financial formulas.
 4. Prefer one canonical owner for a rule instead of duplicating it across documents.
 
+For application work, follow the source-boundary standards in [`docs/spec/19-ENGINEERING-STANDARDS.md`](docs/spec/19-ENGINEERING-STANDARDS.md) and check the proposed layout in [`docs/spec/20-REPOSITORY-STRUCTURE.md`](docs/spec/20-REPOSITORY-STRUCTURE.md) against actual T-1 source paths.
+
 ## Required validation
 
 Run from repository root:
@@ -31,3 +33,5 @@ When application code exists, also run the task-specific lint/typecheck/test/mig
 ## Pull requests
 
 Keep changes reviewable. Include requirement/task IDs, changed invariants, exact validation commands/results, and unresolved blockers. Architecture choices that constrain future implementation require an ADR.
+
+The implementation and review sequence lives in `TASKS.md`; the test layers, failure/retest rules, and evidence format live in `docs/spec/14-TEST-STRATEGY.md`. For each bounded unit, show the relevant diff, focused checks and negative cases, plus the affected browser journey when visible. Link findings and retests to the owning task. Do not call a document check, successful build, or screenshot a functional PASS.

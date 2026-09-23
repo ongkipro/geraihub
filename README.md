@@ -2,7 +2,7 @@
 
 GeraiHub is a planned multi-organization, multi-branch web application for Indonesian shipment-counter operations.
 
-This repository currently contains **planning and specification documents only**. It has no application source code, package manifest, installed dependency, database schema, OAuth configuration, Mengantar API integration, credential, migration, runtime, or deployment.
+The development branch contains the T-1 application foundation: a Next.js web process, a PostgreSQL migration probe, and a separate worker process. It does not yet implement OAuth, GeraiHub authorization, shipment operations, Mengantar integration, or deployment.
 
 ## Documentation status
 
@@ -15,7 +15,7 @@ This repository currently contains **planning and specification documents only**
 - **Architecture decisions:** [`docs/adr/`](docs/adr/).
 - **Repository governance:** [`docs/REPOSITORY-GOVERNANCE.md`](docs/REPOSITORY-GOVERNANCE.md).
 - **Retained snapshot:** `~/Documents/work/prd/geraihub/` is the pre-promotion snapshot and is no longer authoritative.
-- **Development:** Not started and not authorized by the presence of these documents.
+- **Development:** Explicitly authorized on 2026-09-24; task completion remains evidence-gated in [`TASKS.md`](TASKS.md).
 
 ## Documentation map
 
@@ -73,7 +73,7 @@ Structural validation checks declared numeric requirement/ADR/task IDs and their
 - legal or privacy compliance;
 - working UI, security controls, database behavior, or deployment readiness.
 
-The accepted implementation baseline is Node.js 24 LTS major + pnpm + Next.js App Router + PostgreSQL + Drizzle + Better Auth, with separate web and durable worker processes from one modular-monolith codebase. ADR-005 adds database-backed sessions with server-owned active-branch context. Exact package versions and compatibility are not evidence until T-1 creates the lockfile and executes the checks. Production hosting/vendor/region remain gated.
+The implementation baseline is Node.js 24 LTS major + pnpm + Next.js App Router + PostgreSQL + Drizzle + Better Auth, with separate web and durable worker processes from one modular-monolith codebase. Exact installed versions are pinned in `package.json` and `pnpm-lock.yaml`. Auth behavior, provider contracts, production hosting/vendor/region, and full compatibility remain gated by their owning tasks.
 
 Validate the current documentation repository with:
 
@@ -82,4 +82,25 @@ python3 scripts/check-repository.py .
 python3 scripts/test-check-repository.py
 ```
 
-No application install, build, provider request, or deployment command applies until development is explicitly authorized.
+## Local foundation checks
+
+Use Node.js 24 and the pinned pnpm version. Start a disposable PostgreSQL 17 container for synthetic testing (no production data or credentials):
+
+```bash
+docker run --rm -d --name geraihub-t1-postgres \
+  -e POSTGRES_HOST_AUTH_METHOD=trust \
+  -e POSTGRES_USER=geraihub -e POSTGRES_DB=geraihub_test \
+  -p 127.0.0.1:55432:5432 postgres:17-alpine
+export DATABASE_URL=postgresql://geraihub@127.0.0.1:55432/geraihub_test
+pnpm install --frozen-lockfile
+pnpm db:generate
+pnpm db:migrate
+pnpm db:seed
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm dev
+```
+
+Run `pnpm worker` in a second terminal with the same `DATABASE_URL`. The worker currently verifies database connectivity and stays alive; it cannot dispatch provider operations. This local trust-auth container binds only to loopback and must never be used for staging or production. The generated `next-env.d.ts` is intentionally ignored per the installed Next.js guidance. No `.env` file or live provider credential is required for T-1.

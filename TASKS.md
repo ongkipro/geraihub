@@ -1,6 +1,6 @@
 # GeraiHub Implementation Tasks
 
-> **Execution status: Documentation promoted; development not started.** This is the sole canonical future implementation queue. Product scope acceptance is separate from technical design acceptance and authorization for source code, package installation, secrets, provider access, deployment, or release.
+> **Execution status: Development authorized; T-1 foundation verification in progress.** This is the sole canonical implementation queue. Source-code authorization does not authorize secrets, provider mutations, production resources, deployment, or release.
 
 ## Execution Rules
 
@@ -24,14 +24,17 @@
 ## Milestone 0 — Project and Contract Foundation
 
 ### T-1 — Initialize the implementation workflow reproducibly
-- Status: Blocked — development authorization required
+- Status: In progress — local foundation checks passed; committed clean-checkout proof pending
 - Owner: Engineering owner
 - Primary requirement: TD-9
 - Constraints: SEC-8, SEC-15, PRIV-13
 - Dependencies: T-2, T-23
-- Current evidence: Documentation-only repository; no source tree, package manifest, lockfile, installed dependency, migration, or application check exists.
+- Current evidence: Uncommitted `feat/development-foundation` worktree at base `fc9aed0` has pinned Node 24/pnpm 11.22.0, Next.js 16.3.6, React 19.3.0, PostgreSQL 17 local probe, Drizzle 0.45.3/Kit 0.31.11, and Better Auth 1.7.5. The web/worker source, lockfile, reviewed probe SQL, seed, and two foundation tests exist. This is not yet a committed clean checkout or CI result.
 - Done when: After explicit development authorization, initialize the accepted profile and, from a clean checkout in an approved local environment, execute documented install, lint/typecheck, tests, startup, migration, and synthetic seed commands. Record prerequisites and results without proprietary AI tools or live provider writes.
 - Scope boundary: Verify migration/seed tooling with a disposable minimal schema. T-3 and T-7 own business tables; bootstrap tooling must not duplicate their implementation.
+- Source-layout acceptance: Replace the proposal in `docs/spec/20-REPOSITORY-STRUCTURE.md` with observed web/worker/module/DB/test paths and enforce the applicable import boundaries. Apply `docs/spec/19-ENGINEERING-STANDARDS.md` while proving the commands above; neither planning document is runtime evidence.
+- Execution unit (authorized 2026-09-24): Pin the accepted runtime and build a minimal web/worker/PostgreSQL migration probe, without business tables or provider access. Run `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm db:generate`, `pnpm db:migrate`, `pnpm db:seed`, `pnpm dev`, and `pnpm worker` against a disposable local PostgreSQL instance. Record observed results below before changing status.
+- Local result (2026-09-24, Node 24.18.0, pnpm 11.22.0, PostgreSQL 17 Alpine, synthetic data): From an isolated source export without `node_modules`, build output, or generated Next types, frozen install PASS; migration generation found no drift; migration and synthetic seed PASS against a new disposable database; lint and typecheck PASS; 2/2 Node tests PASS; Next production build PASS; production web startup returned HTTP 200; worker startup reported ready with provider dispatch disabled. The existing worktree's development web startup also returned HTTP 200, and Chromium displayed the foundation route at desktop and narrow widths. A negative ESLint probe rejected a worker import of `src/app/`. No auth, branch isolation, shipping, provider, print, or production behavior is proved by these checks. Final T-1 closure awaits the same commands from an actual committed clean checkout.
 
 ### T-2 — Select and record the runtime and deployment profile
 - Status: Complete — planning baseline accepted in ADR-001; exact package/runtime proof remains T-1
@@ -39,7 +42,7 @@
 - Primary requirement: TD-9
 - Constraints: TD-2, SEC-2, SEC-4, SEC-14, PRIV-11
 - Dependencies: None
-- Current evidence: ADR-001 accepts Node.js 24 LTS major, pnpm, Next.js App Router, PostgreSQL, Drizzle, Better Auth, and separate web/worker processes from one modular-monolith codebase. ADR-002 through ADR-005 fix tenant enforcement, outbox/reconciliation, exact money/concurrency, and session/active-branch policy. Current official stack documentation was rechecked on 2026-09-23; no installed package/lockfile/runtime evidence exists yet.
+- Current evidence: ADR-001 accepts Node.js 24 LTS major, pnpm, Next.js App Router, PostgreSQL, Drizzle, Better Auth, and separate web/worker processes from one modular-monolith codebase. ADR-002 through ADR-005 fix tenant enforcement, outbox/reconciliation, exact money/concurrency, and session/active-branch policy. Current official stack documentation was rechecked on 2026-09-23; the later installed-package and lockfile evidence is recorded under T-1.
 - Done when: Review compatible web runtime, auth adapter, PostgreSQL/Drizzle, worker/outbox execution, deployment, and secret/backup boundaries against current official documentation. Record one accepted profile with reasons and unresolved production gates; T-1 then initializes and verifies actual locked package versions and API compatibility. Do not create source code, remote resources, or credentials as part of this selection task.
 
 ### T-23 — Enable and verify canonical branch protection
@@ -121,13 +124,14 @@
 - Recovery coverage: Exercise A-19 and the counter entry to A-20 through browser scenarios 11/12; directory writes remain admin-only. Expand every action family into concrete control/test subkeys before accepting coverage.
 
 ### T-10 — Verify current Mengantar contracts with sanitized evidence
-- Status: Blocked — current source review and separately authorized sandbox access required
+- Status: Blocked — public documentation reviewed; separately authorized account/sandbox evidence still required
 - Owner: Engineering owner
 - Primary requirement: TD-4
 - Constraints: Q-1, Q-2, Q-6, BILL-5 through BILL-8, SEC-7, SEC-9
 - Dependencies: T-2
 - Done when: Complete the contract evidence table in Technical Design section 7 with actual sources, environment/account scope, observation dates, sanitized schemas/results, and unresolved fields, including pickup-origin, sender/recipient, item/declared-value, COD field mapping, actual COD fee rate/base/rounding and payer/add-or-deduct treatment. Start only with an explicitly authorized sandbox non-COD estimate. Order/cancel/label mutation tests require separate scoped authorization and a provider-supported sandbox path; no production order may be created for validation. Unknown required capabilities keep dependent tasks blocked; documentation or synthetic fixtures alone cannot close runtime-proof gates.
 - Capability units: non-COD estimate/submit; COD ongkir and COD produk per-service eligibility, 3.33% policy versus actual fee/base/rounding, request/response mapping, excluded-shipping sender-at-gerai treatment, and collection/remittance semantics; submit/retry/order status (including any existing provider order without a resi); label; cancellation; branch pickup-point/origin fields and eligibility; provider pickup status; account mapping; finance reads. Record PASS/BLOCKED and evidence per unit. One verified non-COD capability does not enable COD. Finance must cover the fields/units/freshness/correlation in TEST-5; no synthetic fixture closes external evidence.
+- Documentation unit (2026-09-24): Read-only retrieval with `curl -fsSL https://api-public.mengantar.com/docs/` succeeded; Technical Design section 7 records the documented estimate/order/read/label/cancellation/finance surfaces and unresolved GeraiHub-specific semantics. A GeraiCUAN `.env.local` file was detected by filename only; its contents and all credentials were left unopened. No sandbox estimate, order, label, cancellation, finance read, or account entitlement was tested. All capability units remain BLOCKED pending separately authorized, sanitized account/sandbox evidence.
 
 ### T-11 — Implement provider estimate, dispatch, idempotency, and reconciliation
 - Status: Blocked — T-10 provider contract gate

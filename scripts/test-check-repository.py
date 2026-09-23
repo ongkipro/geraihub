@@ -18,7 +18,9 @@ class RepositoryGateTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         paths = (
-            list(ROOT.rglob("*.md"))
+            list(ROOT.glob("*.md"))
+            + list((ROOT / "docs").rglob("*.md"))
+            + list((ROOT / ".github").rglob("*.md"))
             + list((ROOT / ".github/workflows").glob("*.yml"))
             + list((ROOT / "scripts").glob("*.py"))
         )
@@ -46,6 +48,19 @@ class RepositoryGateTests(unittest.TestCase):
 
     def test_valid_repository(self):
         self.check()
+
+    def test_installed_and_generated_markdown_is_ignored(self):
+        for directory in ["node_modules/package", ".next/cache"]:
+            path = self.root / directory / "README.md"
+            path.parent.mkdir(parents=True)
+            path.write_text("[broken](missing.md)\n")
+        self.check()
+
+    def test_project_source_markdown_is_still_checked(self):
+        path = self.root / "src/README.md"
+        path.parent.mkdir(parents=True)
+        path.write_text("[broken](missing.md)\n")
+        self.check("broken local link: src/README.md")
 
     def test_navigation_link_is_not_a_second_declaration(self):
         self.replace("docs/spec/TRACEABILITY.md", "[PR-1](02-PRD.md)", "PR-1")
