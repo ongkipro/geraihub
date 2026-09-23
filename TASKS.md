@@ -25,12 +25,12 @@
 - Done when: After explicit development authorization, initialize the accepted profile and, from a clean checkout in an approved local environment, execute documented install, lint/typecheck, tests, startup, migration, and synthetic seed commands. Record prerequisites and results without proprietary AI tools or live provider writes.
 
 ### T-2 — Select and record the runtime and deployment profile
-- Status: Planned — no stack or deployment target accepted yet
+- Status: Complete — planning baseline accepted in ADR-001; exact package/runtime proof remains T-1
 - Owner: Engineering owner
 - Primary requirement: TD-9
 - Constraints: TD-2, SEC-2, SEC-4, SEC-14, PRIV-11
 - Dependencies: None
-- Current evidence: Modular monolith, PostgreSQL, Drizzle, Better Auth, and a web framework are recommendations only; no package or runtime evidence exists.
+- Current evidence: ADR-001 accepts Node.js 24 LTS major, Next.js App Router, PostgreSQL, Drizzle, Better Auth, and separate web/worker processes from one modular-monolith codebase. ADR-002 through ADR-004 fix tenant enforcement, outbox/reconciliation, exact money, and concurrency policy. No installed package/lockfile/runtime evidence exists yet.
 - Done when: Review compatible web runtime, auth adapter, PostgreSQL/Drizzle, worker/outbox execution, deployment, and secret/backup boundaries against current official documentation. Record one accepted profile with reasons and unresolved production gates; T-1 then initializes and verifies actual locked package versions and API compatibility. Do not create source code, remote resources, or credentials as part of this selection task.
 
 ### T-3 — Build organization, branch, identity, invitation, and membership persistence
@@ -42,7 +42,7 @@
 - Done when: Apply local migrations and execute synthetic integration tests for organization/branch ownership, unique provider-subject links, one-time/expired/revoked invitation acceptance, concurrent acceptance, permitted multi-branch memberships, and duplicate active-grant rejection. Record resulting schema/constraint evidence.
 
 ### T-4 — Implement Google OAuth and GeraiHub provisioning
-- Status: Planned — invitation identity/recovery policy gate
+- Status: Planned — identity/recovery policy accepted; runtime implementation pending
 - Owner: Engineering owner
 - Primary requirement: PR-11
 - Constraints: IAM-1, IAM section 2 and authorization cases, SEC-2 through SEC-4
@@ -58,7 +58,7 @@
 - Done when: Execute two-branch same-role integration tests against routes/actions, queries, caches, stale tabs/context, and mismatched background jobs. Assert no cross-branch disclosure or mutation, no implicit owner counter permission, and authorized switching invalidates old branch state.
 
 ### T-6 — Implement audit, JIT support, revocation, and redaction
-- Status: Planned — JIT approver policy gate
+- Status: Planned — JIT approval policy accepted; runtime implementation pending
 - Owner: Engineering owner
 - Primary requirement: PR-7
 - Constraints: PR-10, IAM-1, OBS-1, SEC-4, SEC-8, SEC-10, PRIV-8
@@ -76,7 +76,7 @@
 - Done when: Apply local migrations and run transaction tests proving immutable branch ownership, versioned quotes, append-only payment/correction evidence, concurrency guards, and retained original history after cancellation. Review generated SQL before acceptance.
 
 ### T-8 — Implement physical verification, quote, payment, and submission guards
-- Status: Planned — QRIS verification SOP gate
+- Status: Planned — QRIS verification baseline accepted; runtime implementation pending
 - Owner: Engineering owner
 - Primary requirement: PR-2
 - Constraints: PR-3, BILL-1 through BILL-4, UX-1, SEC-5, SEC-11
@@ -124,12 +124,12 @@
 - Done when: Execute local-draft and post-submit/printed cancellation tests including replay, timeout, rejected/ineligible and confirmed outcomes. Browser scenario 5 shows pending/unknown until provider confirmation, retains original order/label/payment history, and never equates provider cancellation with a local refund.
 
 ### T-21 — Implement payment correction approval and external refund records
-- Status: Planned — exceptional self-correction disabled unless separately approved
+- Status: Planned — owner self-correction disabled for MVP
 - Owner: Engineering owner
 - Primary requirement: PR-7
 - Constraints: BILL-3, BILL-4, IAM permission matrix, API-1, UX-1, SEC-11
 - Dependencies: T-7, T-8, T-9
-- Done when: Execute API/browser cases for staff denial, admin reasoned request, owner approval/rejection, wrong-branch denial, stale version, duplicate decision, and simultaneous approvals. Exactly one append-only correction is recorded; original payment remains. External refund evidence never invokes a payment gateway/provider reversal. Confirm the exceptional self-correction route remains disabled without explicit approved policy.
+- Done when: Execute API/browser cases for staff denial, admin reasoned request, owner approval/rejection, wrong-branch denial, stale version, duplicate decision, and simultaneous approvals. Exactly one append-only correction is recorded; original payment remains. External refund evidence never invokes a payment gateway/provider reversal. Confirm no owner self-correction route exists in MVP and all corrections require a distinct admin request plus owner decision.
 
 ## Milestone 2 — Governance and Reconciliation
 
