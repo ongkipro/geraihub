@@ -10,6 +10,7 @@ This repository currently contains **planning and specification documents only**
 - **Current status:** [`STATUS.md`](STATUS.md).
 - **Execution queue:** [`TASKS.md`](TASKS.md).
 - **Product entry point:** [`PRD.md`](PRD.md).
+- **Developer/AI handoff:** [`docs/spec/HANDOFF.md`](docs/spec/HANDOFF.md).
 - **Specification pack:** [`docs/spec/`](docs/spec/).
 - **Architecture decisions:** [`docs/adr/`](docs/adr/).
 - **Repository governance:** [`docs/REPOSITORY-GOVERNANCE.md`](docs/REPOSITORY-GOVERNANCE.md).
@@ -23,28 +24,49 @@ This repository currently contains **planning and specification documents only**
 | [`STATUS.md`](STATUS.md) | Current phase, verified repository state, blockers, and next gates |
 | [`PRD.md`](PRD.md) | Stable entry point to the canonical product requirements |
 | [`TASKS.md`](TASKS.md) | Sole future implementation queue and dependency order |
-| [`docs/spec/README.md`](docs/spec/README.md) | Specification index and ownership map |
+| [`docs/spec/HANDOFF.md`](docs/spec/HANDOFF.md) | Shortest safe entry point for a developer/coding agent |
+| [`docs/spec/GLOSSARY.md`](docs/spec/GLOSSARY.md) | Canonical business/technical terminology |
+| [`docs/spec/TRACEABILITY.md`](docs/spec/TRACEABILITY.md) | Requirement → spec → task → evidence map |
+| [`docs/spec/DECISION-GATES.md`](docs/spec/DECISION-GATES.md) | Open facts/approvals that must not be guessed |
+| [`docs/spec/README.md`](docs/spec/README.md) | Full specification index and ownership map |
 | [`docs/spec/CONTEXT-RECORD.md`](docs/spec/CONTEXT-RECORD.md) | Scope, provenance, overlays, omissions, and approval gates |
-| [`docs/spec/02-PRD.md`](docs/spec/02-PRD.md) | Canonical product requirements |
-| [`docs/spec/03-TECHNICAL-DESIGN.md`](docs/spec/03-TECHNICAL-DESIGN.md) | Proposed component behavior and integration gates |
-| [`docs/spec/04-SYSTEM-ARCHITECTURE.md`](docs/spec/04-SYSTEM-ARCHITECTURE.md) | Target architecture, not implemented architecture |
 | [`docs/adr/README.md`](docs/adr/README.md) | Accepted/proposed architecture decisions and rationale |
 | [`scripts/check-repository.py`](scripts/check-repository.py) | Self-contained structural repository validator |
-
-The remaining domain specifications are indexed in `docs/spec/README.md`.
 
 ## Protected product boundaries
 
 - Google OAuth authenticates an external identity; GeraiHub owns users, memberships, roles, active-branch authorization, sessions, and audit records.
+- Branch/gerai is the operational isolation boundary for shipment mutations.
 - Mengantar remains authoritative for provider shipment finance and settlement.
 - MVP counter payment records cover cash and branch QRIS only.
 - Payment corrections require an admin request and owner decision; customer refunds occur outside GeraiHub and are recorded as audited evidence.
 - Estimated profit appears only after verified Mengantar pickup evidence and remains non-authoritative.
 - Customer pre-fill, QR/reference lookup, and WhatsApp are post-MVP.
+- Provider ambiguity is never converted into blind duplicate submit/cancel.
+
+## Recommended reading order for implementation handoff
+
+```text
+STATUS.md
+  ↓
+TASKS.md
+  ↓
+docs/spec/02-PRD.md
+  ↓
+docs/spec/GLOSSARY.md
+  ↓
+docs/spec/TRACEABILITY.md
+  ↓
+docs/spec/DECISION-GATES.md
+  ↓
+docs/adr/*
+  ↓
+task-specific domain specs
+```
 
 ## Validation boundary
 
-Structural validation proves document identifiers, owners, task references, and traceability are internally consistent. It does **not** prove:
+Structural validation proves document identifiers, owners, task references, links, and traceability structure are internally consistent. It does **not** prove:
 
 - current Mengantar endpoint behavior;
 - installed package/runtime compatibility or working application behavior;
