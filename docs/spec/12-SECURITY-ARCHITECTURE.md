@@ -6,7 +6,7 @@
 
 | Field | Value |
 |---|---|
-| Status | Draft — control requirements; implementation and runtime verification pending |
+| Status | Accepted engineering baseline; implementation and runtime verification pending |
 | Version / updated | 0.3 / 2026-09-23 |
 | Accountable owner | Security owner |
 | System owner | Engineering owner |
@@ -45,6 +45,7 @@ Authoritative boundaries: Google proves an external identity; GeraiHub decides a
 | SEC-12 | Security owner | Rate/concurrency limits MUST protect login, lookup, estimate, submit/cancel, print, and export using shared persistent storage when deployed on more than one instance. | Auth/app limiter and queue | Bounded abuse/limit test |
 | SEC-13 | Security owner | Production transport MUST use HTTPS; response headers must restrict framing, content type sniffing, referrer leakage, and browser capabilities proportionately. CSP/CORS rules must be explicit allowlists. | Deployment/app headers | Browser/header verification |
 | SEC-14 | Security owner | Backups and operational access MUST be restricted, encrypted by the chosen managed platform, tested by a restore exercise before production, and subject to the privacy retention schedule. | Infrastructure/runbook | Restore evidence without production PII |
+| SEC-15 | Security owner | Runtime/package-manager/dependency versions MUST be reproducible through version files and a single frozen lockfile; reusable CI actions MUST be pinned to full commit SHAs; dependency/action changes require review and must not expose production secrets to untrusted pull-request code. | Repository/CI/release workflow | Lockfile/toolchain check, workflow-pin validator, dependency/security review |
 
 ## 3. Threat Register
 
@@ -61,10 +62,12 @@ The residual ratings below are provisional targets, not observed security outcom
 | THR-7 | Super admin/support accesses tenant data without approved incident scope. | SEC-1, SEC-10, audit review. | Platform owner | Low after JIT test and operating review. |
 | THR-8 | Provider credential is abused through SSRF/redirect or uncontrolled egress. | SEC-9; fixed verified provider destination and no generic server fetch endpoint. | Engineering owner | Low. |
 | THR-9 | Brute-force/enumeration or provider saturation affects operations. | SEC-12 and `RATE-*`; generic denial responses. | Engineering owner | Medium until measured limits/provider ceilings are set. |
+| THR-10 | Dependency, lockfile, package-manager, or CI-action drift executes unreviewed code or makes builds non-reproducible. | SEC-15; frozen pnpm lockfile, pinned CI actions, least-privilege workflow permissions, reviewed upgrades. | Engineering owner | Low after repository/runtime checks are implemented. |
 
 ## 4. Authentication, Session, and Secrets Baseline
 
-- Use Google OpenID Connect through Better Auth or an equivalent maintained framework accepted under T-2. Do not implement OAuth protocol primitives manually.
+- Use Google OpenID Connect through Better Auth accepted under T-2. Do not implement OAuth protocol primitives manually.
+- ADR-005 owns the MVP session/context baseline: database-backed Better Auth sessions, no session cookie cache/stateless session, server-owned active-branch context, 12-hour planning expiry, 1-hour refresh age, and 15-minute freshness window. Exact installed configuration is verified under T-4.
 - Keep CSRF protection enabled. Trusted origins and redirect URLs are explicit environment-specific allowlists; do not trust arbitrary forwarded host headers.
 - Use a high-entropy auth secret from approved secret storage; never put it in source control. OAuth client secrets and Mengantar credentials are environment-scoped and server-only.
 - Do not request/store Google access or refresh tokens for MVP. Persist only the minimum provider account link needed for identity (`provider`, stable `sub`, GeraiHub user relation) and approved display attributes.
@@ -90,6 +93,6 @@ Before production, run: authorization/tenant tests; OAuth callback and uninvited
 | Item | Owner | Gate |
 |---|---|---|
 | Verify Mengantar cancellation, pickup, idempotency, label, and status contract with documented/sandbox evidence. | Engineering + provider account owner | Before provider order/cancel production release |
-| Select hosting, database, secret store, backup region, and proxy boundary. | Engineering/operations owner | Before deployment design |
-| Approve JIT support operational approver and emergency revoke procedure. | Platform owner | Before super-admin support release |
-| Approve account-link/email-change recovery procedure. | Security + product owner | Before invitations/account recovery release |
+| Select production hosting/database provider, secret store, backup region, telemetry destination, and proxy boundary. | Engineering/operations owner | Before deployment design |
+| Appoint actual platform/support personnel able to satisfy the already accepted distinct-approver JIT policy and emergency revocation ownership. | Platform owner | Before super-admin support release |
+| Verify the exact installed Better Auth schema/options, Google OAuth configuration, and ADR-005 session/context behavior. | Security + engineering owner | T-4 before auth release |

@@ -17,3 +17,4 @@ Architecture Decision Records (ADRs) preserve durable engineering decisions that
 | [ADR-002](ADR-002-TENANT-DATABASE-ENFORCEMENT.md) | Tenant/database enforcement | Accepted |
 | [ADR-003](ADR-003-OUTBOX-RECONCILIATION.md) | Durable provider dispatch/reconciliation | Accepted |
 | [ADR-004](ADR-004-MONEY-CONCURRENCY.md) | Exact money and optimistic concurrency | Accepted |
+| [ADR-005](ADR-005-SESSION-ACTIVE-BRANCH-CONTEXT.md) | Database session and server-owned active-branch context | Accepted |

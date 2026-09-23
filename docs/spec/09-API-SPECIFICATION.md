@@ -1,23 +1,23 @@
 # GeraiHub Internal API Contract
 
-> **Status:** Draft, framework-neutral internal contract. It defines GeraiHub's stable application boundary, not Mengantar's API. A machine-readable OpenAPI 3.1 document is generated only after the selected runtime and request schemas are accepted; no provider endpoint, field, or auth route is invented here.
+> **Status:** Accepted framework-neutral planning contract. It defines GeraiHub's stable application boundary, not Mengantar's API. A machine-readable OpenAPI 3.1 document is generated only after the selected runtime and request schemas are accepted; no provider endpoint, field, or auth route is invented here.
 
 ## Document Control
 
 | Field | Value |
 |---|---|
-| Status | Draft — runtime route/schema evidence pending |
+| Status | Accepted planning contract — runtime route/OpenAPI evidence pending |
 | Authority | Canonical repository specification; promoted from the retained planning snapshot on 2026-09-23 |
 | Accountable owner | Engineering owner |
 
 ### API-1 — Internal operation contract ownership
-- Status: Draft
+- Status: Accepted planning contract
 - Owner: Engineering owner
 - Source: PR-1 through PR-11; IAM-1; TD-3 through TD-7
 - Statement: All implemented internal operations must satisfy sections 1–5, including authorization, scoped persistence, state guards, and safe provider outcomes.
 - Acceptance: Contract tests cover valid operations and unauthenticated, uninvited, wrong-branch, invalid-state, replay, timeout, and revoked-JIT denial without unintended side effects.
-- Contract reference: This document is the planning contract; machine-readable OpenAPI and runtime route/schema references are pending HTTP-boundary selection, not claimed complete.
-- Constraints: SEC-1 through SEC-11; TEN-1 through TEN-6
+- Contract reference: This document is the planning contract; machine-readable OpenAPI and concrete runtime route/schema references are generated during implementation and are not claimed complete.
+- Constraints: SEC-1 through SEC-15; TEN-1 through TEN-6
 - Change history: Existing framework-neutral contract assigned ownership during planning audit.
 
 ## 1. Boundary Rules
@@ -33,7 +33,7 @@
 | Concern | Contract |
 |---|---|
 | Identity | Session resolves a GeraiHub user linked to the Google provider subject. Valid Google authentication without invitation/membership is not an application session with access. |
-| Active branch | Mutations require one authorized active branch. A branch switch is an explicit server-validated context update, never a client-controlled `branch_id` on arbitrary requests. |
+| Active branch | Mutations require one authorized active branch under ADR-005. A branch switch accepts only a candidate membership/reference, validates it server-side, and persists server-owned context; client `branch_id` values never become authority. |
 | IDs | Internal IDs are opaque. Customer-facing post-MVP draft references are separate and out of MVP scope. |
 | Money | All GeraiHub-owned request/response monetary amounts use exact integer IDR rupiah compatible with PostgreSQL `BIGINT`, per ADR-004; floating-point values are rejected. Provider decimal formats are normalized and validated at the adapter boundary. |
 | Errors | Follow `18-ERROR-AND-RESULT-CONTRACT.md`: return a stable machine code, safe user message, correlation ID where relevant, and field errors only for the caller's own validated input. Never return stack traces, raw provider response, secret, or cross-branch existence data. |
@@ -70,7 +70,7 @@
 |---|---|---|---|---|
 | Read reconciliation/estimate report | Authorized gerai admin/finance/owner or aggregate platform scope | Time/filter/cursor in permitted scope | Labels Mengantar as authoritative; no provider financial modification exists. | PR-8, PR-9 |
 | Request payment correction | Authorized branch admin | Payment record/version, bounded reason, proposed allowlisted values | Append a pending request; reject stale/conflicting requests; staff cannot request through this operation. | BILL-3, SEC-11 |
-| Decide payment correction / record external refund | Authorized owner in explicit branch | Pending request/version, decision, reason or minimal off-system refund reference | Append decision/event atomically; no in-app transfer or provider settlement change; exceptional self-correction disabled pending policy. | BILL-3, BILL-4, SEC-11 |
+| Decide payment correction / record external refund | Authorized owner in explicit branch | Pending request/version, decision, reason or minimal off-system refund reference | Append decision/event atomically; no in-app transfer or provider settlement change; owner self-correction is prohibited in MVP and the decision actor must differ from the requester. | BILL-3, BILL-4, SEC-11 |
 | Read platform health/audit aggregate | Platform super admin | Bounded filters | Returns minimum governance metadata; no tenant shipment detail without JIT. | PR-10, IAM section 6 |
 | Grant/revoke JIT support | Authorized approver | Named branch, purpose, duration | Validates bounded duration/approval; grant/revoke/access is auditable and expiry is enforced. | PR-10, SEC-10 |
 
@@ -82,9 +82,9 @@ Allowed outcomes: `pending`, `confirmed`, `failed`, `unknown`, and `reconciliati
 
 ## 5. Contract Gates Before Implementation
 
-1. Select runtime/HTTP framework and then write versioned OpenAPI 3.1 schemas from the actual server routes and validation types.
+1. Use the accepted runtime/framework baseline and write versioned OpenAPI 3.1 schemas from the actual implemented server routes and validation types under T-1/T-3 onward.
 2. Verify current Mengantar estimate/order/status/label/cancellation contract using sanitized evidence before adding adapter operation schemas.
-3. Preserve ADR-004 integer-IDR money and the error vocabulary in `18-ERROR-AND-RESULT-CONTRACT.md`; finalize pagination limits, HTTP status mapping, idempotency header/body representation, and session/context transport from installed framework evidence.
+3. Preserve ADR-004 integer-IDR money, ADR-005 server-owned session/active-branch semantics, and the error vocabulary in `18-ERROR-AND-RESULT-CONTRACT.md`; finalize pagination limits, HTTP status mapping, idempotency header/body representation, and exact installed-framework mapping.
 4. Add contract tests for authorized, unauthenticated, uninvited, wrong-branch, invalid-state, replay, provider-timeout, and revoked-JIT cases.
 
 ## 6. Explicitly Excluded

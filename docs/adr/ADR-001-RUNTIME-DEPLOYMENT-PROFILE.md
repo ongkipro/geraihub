@@ -14,6 +14,7 @@ GeraiHub needs a server-rendered authenticated web application, PostgreSQL trans
 Use one TypeScript modular-monolith codebase with:
 
 - Node.js **24 LTS major** for the initial implementation runtime. T-1 pins the exact supported 24.x release used by CI/deployment.
+- **pnpm** as the sole JavaScript package manager. T-1 pins the exact pnpm version in `package.json#packageManager`, commits `pnpm-lock.yaml`, and uses frozen-lockfile installs in CI; npm/yarn/bun lockfiles must not coexist.
 - Next.js App Router as the web/application framework.
 - PostgreSQL as the authoritative GeraiHub operational database.
 - Drizzle ORM + version-controlled SQL migrations generated/applied through Drizzle Kit.
@@ -24,7 +25,19 @@ Use one TypeScript modular-monolith codebase with:
 - PostgreSQL is the initial queue durability mechanism through an application-owned outbox/job table. Redis/RabbitMQ is not required for MVP.
 - Reference non-production deployment: a container platform capable of an always-on web service, always-on worker, private networking, managed secrets, and PostgreSQL. Railway is a compatible reference profile, not a mandatory production vendor.
 
-Exact Next.js/Drizzle/Better Auth package versions are not written into this ADR. T-1 installs compatible current packages, commits the lockfile, records versions, and proves install/build/test/migration/start commands.
+Exact Next.js/Drizzle/Better Auth/pnpm package versions are not written into this ADR. T-1 installs compatible current packages, commits the lockfile/runtime version files, records versions, and proves install/build/test/migration/start commands.
+
+## Official compatibility evidence reviewed — 2026-09-23
+
+The planning baseline was rechecked against current official documentation:
+
+- Node.js release status lists Node.js 24 (`Krypton`) as LTS: https://nodejs.org/about/previous-releases
+- Next.js App Router documentation requires Node.js 20.9 or later, so Node.js 24 LTS satisfies the documented runtime floor: https://nextjs.org/learn/dashboard-app
+- Better Auth documents PostgreSQL and a Drizzle adapter with `provider: "pg"`: https://better-auth.com/docs/adapters/drizzle and https://better-auth.com/docs/adapters/postgresql
+- Drizzle documents PostgreSQL migration generation/application through Drizzle Kit: https://orm.drizzle.team/docs/get-started/postgresql-new
+- Railway documents PostgreSQL, private networking, and separate API/worker service deployment. It remains a reference profile only: https://docs.railway.com/databases/postgresql and https://docs.railway.com/networking/private-networking
+
+This review validates the compatibility direction only. Exact installed versions, framework APIs, generated auth schema, and runtime behavior remain T-1/T-4 executable evidence.
 
 ## Production gate
 
