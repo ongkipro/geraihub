@@ -35,8 +35,8 @@
 | Identity | Session resolves a GeraiHub user linked to the Google provider subject. Valid Google authentication without invitation/membership is not an application session with access. |
 | Active branch | Mutations require one authorized active branch. A branch switch is an explicit server-validated context update, never a client-controlled `branch_id` on arbitrary requests. |
 | IDs | Internal IDs are opaque. Customer-facing post-MVP draft references are separate and out of MVP scope. |
-| Money | All request/response monetary amounts are exact IDR minor units or a single documented exact-decimal representation selected at initialization; floating-point values are rejected. |
-| Errors | Return a stable machine code, safe user message, correlation ID where relevant, and field errors only for the caller's own validated input. Never return stack traces, raw provider response, secret, or cross-branch existence data. |
+| Money | All GeraiHub-owned request/response monetary amounts use exact integer IDR rupiah compatible with PostgreSQL `BIGINT`, per ADR-004; floating-point values are rejected. Provider decimal formats are normalized and validated at the adapter boundary. |
+| Errors | Follow `18-ERROR-AND-RESULT-CONTRACT.md`: return a stable machine code, safe user message, correlation ID where relevant, and field errors only for the caller's own validated input. Never return stack traces, raw provider response, secret, or cross-branch existence data. |
 | Pagination | Cursor or bounded page size is selected once at initialization. Every list has explicit maximum/default limits and branch/role scope. |
 | Idempotency | Shipment submit/cancel and any safe replayable mutation have a server-generated/persisted correlation. The browser must not be trusted to create provider idempotency semantics. |
 
@@ -84,7 +84,7 @@ Allowed outcomes: `pending`, `confirmed`, `failed`, `unknown`, and `reconciliati
 
 1. Select runtime/HTTP framework and then write versioned OpenAPI 3.1 schemas from the actual server routes and validation types.
 2. Verify current Mengantar estimate/order/status/label/cancellation contract using sanitized evidence before adding adapter operation schemas.
-3. Define exact money representation, pagination limits, error-code vocabulary, idempotency header/body policy, and session/context transport from installed framework evidence.
+3. Preserve ADR-004 integer-IDR money and the error vocabulary in `18-ERROR-AND-RESULT-CONTRACT.md`; finalize pagination limits, HTTP status mapping, idempotency header/body representation, and session/context transport from installed framework evidence.
 4. Add contract tests for authorized, unauthenticated, uninvited, wrong-branch, invalid-state, replay, provider-timeout, and revoked-JIT cases.
 
 ## 6. Explicitly Excluded
