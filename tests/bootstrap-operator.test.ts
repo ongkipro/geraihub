@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
+import { mkdtemp, rmdir, stat, unlink } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
 import { Pool } from "pg";
@@ -20,6 +23,8 @@ test("first bootstrap invitation binds the environment without a public initiali
   url.pathname = `/${databaseName}`;
   const isolatedUrl = url.toString();
   const pool = new Pool({ connectionString: isolatedUrl });
+  const outputDirectory = await mkdtemp(join(tmpdir(), "geraihub-bootstrap-"));
+  const outputPath = join(outputDirectory, "proof");
   try {
     await run("pnpm", ["db:migrate"], { cwd: process.cwd(), env: { ...process.env, DATABASE_URL: isolatedUrl } });
     const approval = {
@@ -28,7 +33,25 @@ test("first bootstrap invitation binds the environment without a public initiali
       operatorReference: "synthetic-operator",
       environmentName: "test",
     };
-    const invitationId = await issueBootstrapInvitation(pool, approval, createBootstrapProof());
+    const result = await run("node", ["--experimental-strip-types", "scripts/bootstrap-platform.ts", "--output", outputPath], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        BOOTSTRAP_DATABASE_URL: isolatedUrl,
+        BOOTSTRAP_INTENDED_EMAIL: approval.email,
+        BOOTSTRAP_APPROVAL_REFERENCE: approval.approvalReference,
+        BOOTSTRAP_OPERATOR_REFERENCE: approval.operatorReference,
+        BOOTSTRAP_ENVIRONMENT_NAME: approval.environmentName,
+      },
+    });
+    assert.match(result.stdout, /Bootstrap invitation issued/);
+    assert.doesNotMatch(result.stdout, /[A-Za-z0-9_-]{43}/);
+    assert.equal((await stat(outputPath)).mode & 0o777, 0o600);
+    const invitation = await pool.query<{ id: string }>(
+      "select id from invitations where intended_email = $1",
+      [approval.email],
+    );
+    const invitationId = invitation.rows[0].id;
     const marker = await pool.query<{ environment_name: string; current_invitation_id: string }>(
       "select environment_name, current_invitation_id from bootstrap_control where id = 'platform'",
     );
@@ -36,6 +59,10 @@ test("first bootstrap invitation binds the environment without a public initiali
     await assert.rejects(issueBootstrapInvitation(pool, approval, createBootstrapProof()), /remains active/);
     await assert.rejects(issueBootstrapInvitation(pool, { ...approval, environmentName: "other" }, createBootstrapProof()), /unavailable/);
   } finally {
+    await unlink(outputPath).catch((error: NodeJS.ErrnoException) => {
+      if (error.code !== "ENOENT") throw error;
+    });
+    await rmdir(outputDirectory);
     await pool.end();
     await admin.query(`DROP DATABASE "${databaseName}"`);
     await admin.end();
