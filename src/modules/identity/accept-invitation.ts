@@ -12,6 +12,7 @@ type Invitation = {
   id: string;
   intended_email: string;
   role: string;
+  invited_by_user_id: string | null;
   scope_kind: "platform" | "organization" | "branch";
   organization_id: string | null;
   branch_id: string | null;
@@ -28,8 +29,23 @@ export async function acceptInvitation(pool: Pool, proof: string, identity: Veri
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
+    const candidate = await client.query<Pick<Invitation, "id" | "scope_kind" | "role" | "invited_by_user_id">>(
+      "select id, scope_kind, role, invited_by_user_id from invitations where proof_digest = $1",
+      [digest],
+    );
+    const bootstrapInvitation = candidate.rows[0]?.scope_kind === "platform"
+      && candidate.rows[0]?.role === "platform_super_admin" && candidate.rows[0]?.invited_by_user_id === null;
+    if (bootstrapInvitation) {
+      // Match the operator's marker-then-invitation lock order during replacement.
+      const marker = await client.query<{ current_invitation_id: string | null; completed_at: Date | null }>(
+        "select current_invitation_id, completed_at from bootstrap_control where id = 'platform' for update",
+      );
+      if (!marker.rows[0] || marker.rows[0].completed_at || marker.rows[0].current_invitation_id !== candidate.rows[0].id) {
+        throw new Error("Invitation not eligible");
+      }
+    }
     const invitationResult = await client.query<Invitation>(
-      "select id, intended_email, role, scope_kind, organization_id, branch_id, expires_at, consumed_at, revoked_at from invitations where proof_digest = $1 for update",
+      "select id, intended_email, role, scope_kind, invited_by_user_id, organization_id, branch_id, expires_at, consumed_at, revoked_at from invitations where proof_digest = $1 for update",
       [digest],
     );
     const invitation = invitationResult.rows[0];
@@ -44,13 +60,8 @@ export async function acceptInvitation(pool: Pool, proof: string, identity: Veri
     if (account.rowCount !== 1) throw new Error("Invitation not eligible");
 
     if (invitation.scope_kind === "platform") {
-      if (invitation.role === "platform_super_admin") {
-        const bootstrap = await client.query<{ current_invitation_id: string | null; completed_at: Date | null }>(
-          "select current_invitation_id, completed_at from bootstrap_control where id = 'platform' for update",
-        );
-        if (!bootstrap.rows[0] || bootstrap.rows[0].completed_at || bootstrap.rows[0].current_invitation_id !== invitation.id) {
-          throw new Error("Invitation not eligible");
-        }
+      if (invitation.role === "platform_super_admin" && invitation.invited_by_user_id === null && !bootstrapInvitation) {
+        throw new Error("Invitation not eligible");
       }
       await client.query("insert into platform_grants (user_id, role) values ($1, $2)", [identity.userId, invitation.role]);
     } else {

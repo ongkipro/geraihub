@@ -73,6 +73,8 @@ export const invitations = pgTable("invitations", {
   branchId: uuid("branch_id"),
   invitedByUserId: uuid("invited_by_user_id").references(() => user.id, { onDelete: "restrict" }),
   approvalReference: text("approval_reference"),
+  operatorReference: text("operator_reference"),
+  environmentName: text("environment_name"),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   consumedAt: timestamp("consumed_at", { withTimezone: true }),
   revokedAt: timestamp("revoked_at", { withTimezone: true }),
@@ -94,7 +96,7 @@ export const invitations = pgTable("invitations", {
   )`),
   check("invitations_result_complete", sql`(${table.consumedAt} is null and ${table.acceptedUserId} is null and ${table.providerSubject} is null) or (${table.consumedAt} is not null and ${table.acceptedUserId} is not null and ${table.providerSubject} is not null)`),
   check("invitations_not_revoked_after_consumption", sql`${table.revokedAt} is null or ${table.consumedAt} is null`),
-  check("invitations_bootstrap_approval", sql`${table.invitedByUserId} is not null or (${table.scopeKind} = 'platform' and ${table.role} = 'platform_super_admin' and ${table.approvalReference} is not null and length(btrim(${table.approvalReference})) > 0)`),
+  check("invitations_bootstrap_approval", sql`${table.invitedByUserId} is not null or (${table.scopeKind} = 'platform' and ${table.role} = 'platform_super_admin' and ${table.approvalReference} is not null and length(btrim(${table.approvalReference})) > 0 and ${table.operatorReference} is not null and length(btrim(${table.operatorReference})) > 0 and ${table.environmentName} is not null and length(btrim(${table.environmentName})) > 0)`),
   uniqueIndex("invitations_one_pending_bootstrap").on(table.role).where(sql`${table.role} = 'platform_super_admin' and ${table.invitedByUserId} is null and ${table.consumedAt} is null and ${table.revokedAt} is null`),
 ]);
 
@@ -138,6 +140,7 @@ export const platformGrants = pgTable("platform_grants", {
 
 export const bootstrapControl = pgTable("bootstrap_control", {
   id: text("id").primaryKey(),
+  environmentName: text("environment_name"),
   currentInvitationId: uuid("current_invitation_id").references(() => invitations.id, { onDelete: "restrict" }),
   completedAt: timestamp("completed_at", { withTimezone: true }),
 }, (table) => [

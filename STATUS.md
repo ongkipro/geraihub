@@ -4,7 +4,7 @@ Updated: 2026-09-24
 
 ## Current phase
 
-**Development authorized; T-1 foundation verified from committed clean checkout; T-3 persistence locally verified. T-4 OAuth and provisioning is next.**
+**Development authorized; T-1 and T-3 are locally verified. T-4 controlled bootstrap is partially verified; OAuth and provisioning remain open.**
 
 Current state is recorded here; older audit sections below are historical evidence from the documentation phase. Source-code authorization does not authorize credentials, Mengantar mutations, production resources, or deployment.
 
@@ -26,6 +26,7 @@ Current state is recorded here; older audit sections below are historical eviden
 - Exact foundation versions are pinned in `package.json`/`pnpm-lock.yaml` and tested locally; the installed Better Auth/Drizzle adapter now writes/reads the reviewed identity schema. OAuth callback/session policy and tenant authorization remain T-4/T-5 evidence.
 - The extended `validate` workflow now declares an ephemeral PostgreSQL 17 service and runs locked install, migration generation/drift check, synthetic migration/seed, lint, typecheck, tests, and build. Locally, `actionlint`, repository validation (37 required files, 41 Markdown files), 18 validator regressions, peer-dependency check, and `git diff --check` passed on 2026-09-24. The updated workflow has not yet run on hosted GitHub Actions.
 - T-3's organization/branch, Better Auth identity/context, invitation, membership, platform-grant, and bootstrap-marker persistence is implemented. Three additive migrations passed from an empty disposable PostgreSQL 17 database; 8/8 integration tests, lint, typecheck, build, peer check, repository validator, and schema generation without drift passed locally on 2026-09-24. Invitation acceptance is atomic and requires a previously verified Google subject; no runtime Google callback, public auth route, branch authorization, or real bootstrap is implemented yet.
+- T-4's first bounded unit adds a non-HTTP, environment-bound synthetic bootstrap invitation command and a runtime-role privilege check. Migrations `0004`–`0005` preserve approval provenance and invitation history. This unit does not close T-4: verified Google callback, runtime acceptance privilege design, account/session restrictions, recovery, browser evidence, and actual administrator provisioning remain open.
 
 ## Documentation handoff entry points
 

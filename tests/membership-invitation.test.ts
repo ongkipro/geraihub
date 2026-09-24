@@ -185,9 +185,13 @@ test("expired and revoked invitations deny acceptance; bootstrap completion cann
       "update bootstrap_control set completed_at = now() where id = 'platform'",
       [], "23514");
     await client.query("SAVEPOINT bootstrap_check");
+    await client.query("update bootstrap_control set environment_name = 'test' where id = 'platform'");
+    await rejectsSql(client,
+      "update bootstrap_control set environment_name = 'other' where id = 'platform'",
+      [], "23514");
     const bootstrapProof = createHash("sha256").update(`bootstrap-${nonce}`).digest("hex");
     const bootstrapInvitation = await client.query<{ id: string }>(
-      "insert into invitations (proof_digest, intended_email, role, scope_kind, approval_reference, expires_at) values ($1, $2, 'platform_super_admin', 'platform', 'synthetic-approval', now() + interval '1 day') returning id",
+      "insert into invitations (proof_digest, intended_email, role, scope_kind, approval_reference, operator_reference, environment_name, expires_at) values ($1, $2, 'platform_super_admin', 'platform', 'synthetic-approval', 'synthetic-operator', 'test', now() + interval '1 day') returning id",
       [bootstrapProof, identity.email],
     );
     await client.query("update bootstrap_control set current_invitation_id = $1 where id = 'platform'", [bootstrapInvitation.rows[0].id]);
